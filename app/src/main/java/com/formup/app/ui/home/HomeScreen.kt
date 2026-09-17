@@ -44,6 +44,8 @@ import com.formup.app.ui.theme.Mono
 @Composable
 fun HomeScreen(
     state: HomeUiState = SampleHomeState,
+    onNotifications: () -> Unit = {},
+    onInvitePlayer: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var selectedTab by remember { mutableStateOf(HomeTab.Home) }
@@ -54,7 +56,7 @@ fun HomeScreen(
         topBar = {
             FormUpTopBar(
                 hasUnread = state.unreadNotifications,
-                onNotifications = { /* TODO: open notifications */ }
+                onNotifications = onNotifications
             )
         },
         bottomBar = {
@@ -119,7 +121,7 @@ fun HomeScreen(
 
             item {
                 InvitePlayerButton(
-                    onClick = { /* TODO: open invite flow */ },
+                    onClick = onInvitePlayer,
                     modifier = Modifier.padding(top = 4.dp)
                 )
             }
