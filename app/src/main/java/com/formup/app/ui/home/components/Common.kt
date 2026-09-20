@@ -39,7 +39,7 @@ fun SectionCard(
     }
 }
 
-/** Small capsule label, e.g. NEXT MATCH. */
+
 @Composable
 fun StatusPill(
     text: String,
@@ -59,7 +59,7 @@ fun StatusPill(
     }
 }
 
-/** Circular tinted badge that holds a section icon. */
+
 @Composable
 fun IconBubble(
     size: androidx.compose.ui.unit.Dp = 40.dp,

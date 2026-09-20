@@ -54,7 +54,7 @@ data class HomeUiState(
     val unreadNotifications: Boolean
 )
 
-/** Static placeholder content matching the design mockup. */
+
 val SampleHomeState = HomeUiState(
     coachName = "Coach Thomas",
     prompt = "Ready for the big match this weekend?",
