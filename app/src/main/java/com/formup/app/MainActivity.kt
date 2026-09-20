@@ -12,12 +12,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.formup.app.ui.home.HomeScreen
+import com.formup.app.ui.home.components.HomeTab
 import com.formup.app.ui.invite.InvitePlayerScreen
 import com.formup.app.ui.notifications.NotificationsScreen
+import com.formup.app.ui.profile.ProfileScreen
+import com.formup.app.ui.stats.MatchReportScreen
+import com.formup.app.ui.stats.StatsInputScreen
+import com.formup.app.ui.stats.StatsScreen
 import com.formup.app.ui.theme.FormUpColors
 import com.formup.app.ui.theme.FormUpTheme
 
-private enum class AppScreen { Home, Notifications, InvitePlayer }
+private enum class AppScreen { Home, Notifications, InvitePlayer, Stats, StatsInput, MatchReport, Profile }
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,7 +47,9 @@ private fun FormUpApp() {
     when (screen) {
         AppScreen.Home -> HomeScreen(
             onNotifications = { screen = AppScreen.Notifications },
-            onInvitePlayer = { screen = AppScreen.InvitePlayer }
+            onInvitePlayer = { screen = AppScreen.InvitePlayer },
+            onStats = { screen = AppScreen.Stats },
+            onProfile = { screen = AppScreen.Profile }
         )
         AppScreen.Notifications -> NotificationsScreen(
             onBack = { screen = AppScreen.Home }
@@ -50,6 +57,38 @@ private fun FormUpApp() {
         AppScreen.InvitePlayer -> InvitePlayerScreen(
             onNotifications = { screen = AppScreen.Notifications },
             onDone = { screen = AppScreen.Home }
+        )
+        AppScreen.Stats -> StatsScreen(
+            onNotifications = { screen = AppScreen.Notifications },
+            onInputStats = { screen = AppScreen.StatsInput },
+            onViewFullMatchReport = { screen = AppScreen.MatchReport },
+            onSelectTab = { tab ->
+                screen = when (tab) {
+                    HomeTab.Home -> AppScreen.Home
+                    HomeTab.Profile -> AppScreen.Profile
+                    else -> AppScreen.Stats
+                }
+            }
+        )
+        AppScreen.StatsInput -> StatsInputScreen(
+            onBack = { screen = AppScreen.Stats },
+            onCancel = { screen = AppScreen.Stats },
+            onSave = { screen = AppScreen.Stats },
+            onNotifications = { screen = AppScreen.Notifications }
+        )
+        AppScreen.MatchReport -> MatchReportScreen(
+            onBack = { screen = AppScreen.Stats },
+            onNotifications = { screen = AppScreen.Notifications }
+        )
+        AppScreen.Profile -> ProfileScreen(
+            onNotifications = { screen = AppScreen.Notifications },
+            onSelectTab = { tab ->
+                screen = when (tab) {
+                    HomeTab.Stats -> AppScreen.Stats
+                    HomeTab.Profile -> AppScreen.Profile
+                    else -> AppScreen.Home
+                }
+            }
         )
     }
 }
