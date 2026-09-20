@@ -46,6 +46,7 @@ fun HomeScreen(
     state: HomeUiState = SampleHomeState,
     onNotifications: () -> Unit = {},
     onInvitePlayer: () -> Unit = {},
+    onStats: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var selectedTab by remember { mutableStateOf(HomeTab.Home) }
@@ -62,7 +63,13 @@ fun HomeScreen(
         bottomBar = {
             FormUpBottomBar(
                 selected = selectedTab,
-                onSelect = { selectedTab = it }
+                onSelect = { tab ->
+                    if (tab == HomeTab.Stats) {
+                        onStats()
+                    } else {
+                        selectedTab = tab
+                    }
+                }
             )
         }
     ) { innerPadding ->
@@ -89,7 +96,7 @@ fun HomeScreen(
                 QuickActionsRow(
                     onAttendance = { /* TODO */ },
                     onSelection = { /* TODO */ },
-                    onStats = { /* TODO */ }
+                    onStats = onStats
                 )
             }
 

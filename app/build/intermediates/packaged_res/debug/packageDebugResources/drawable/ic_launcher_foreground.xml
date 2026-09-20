@@ -9,7 +9,7 @@
         android:fillColor="#179A63"
         android:pathData="M 0,0 L 108,0 L 108,108 Z" />
 
-    <!-- Bottom-Left Dark Green Half (Diagonal Split) -->
+
     <path
         android:fillColor="#0D4B31"
         android:pathData="M 0,0 L 108,108 L 0,108 Z" />
