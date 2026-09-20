@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.formup.app-mergeDebugResources-44:/values-uz/values-uz.xml",
+            "outputFile": "com.formup.app-mergeDebugResources-45:/values-uz/values-uz.xml",
             "map": [
                 {
                     "source": "/Users/thomasnewman/.gradle/caches/transforms-4/b5e86cb40955669c3b0e1acbfe775ed3/transformed/material3-release/res/values-uz/values-uz.xml",
