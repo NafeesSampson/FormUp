@@ -1,0 +1,26 @@
+[
+    {
+        "merged": "/Users/thomasnewman/.gradle/daemon/8.7/com.formup.app-debug-46:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "/Users/thomasnewman/.gradle/daemon/8.7/com.formup.app-main-48:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    },
+    {
+        "merged": "/Users/thomasnewman/.gradle/daemon/8.7/com.formup.app-debug-46:/xml_data_extraction_rules.xml.flat",
+        "source": "/Users/thomasnewman/.gradle/daemon/8.7/com.formup.app-main-48:/xml/data_extraction_rules.xml"
+    },
+    {
+        "merged": "com.formup.app-debug-46:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "com.formup.app-main-48:/drawable/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "/Users/thomasnewman/.gradle/daemon/8.7/com.formup.app-debug-46:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "/Users/thomasnewman/.gradle/daemon/8.7/com.formup.app-main-48:/drawable/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "/Users/thomasnewman/.gradle/daemon/8.7/com.formup.app-debug-46:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "/Users/thomasnewman/.gradle/daemon/8.7/com.formup.app-main-48:/mipmap-anydpi-v26/ic_launcher.xml"
+    },
+    {
+        "merged": "/Users/thomasnewman/.gradle/daemon/8.7/com.formup.app-debug-46:/xml_backup_rules.xml.flat",
+        "source": "/Users/thomasnewman/.gradle/daemon/8.7/com.formup.app-main-48:/xml/backup_rules.xml"
+    }
+]
