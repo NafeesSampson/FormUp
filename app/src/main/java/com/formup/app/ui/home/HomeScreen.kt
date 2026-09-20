@@ -20,10 +20,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -47,11 +43,9 @@ fun HomeScreen(
     onNotifications: () -> Unit = {},
     onInvitePlayer: () -> Unit = {},
     onStats: () -> Unit = {},
-    onProfile: () -> Unit = {},
+    onSelectTab: (HomeTab) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    var selectedTab by remember { mutableStateOf(HomeTab.Home) }
-
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = FormUpColors.Background,
@@ -63,14 +57,8 @@ fun HomeScreen(
         },
         bottomBar = {
             FormUpBottomBar(
-                selected = selectedTab,
-                onSelect = { tab ->
-                    when (tab) {
-                        HomeTab.Stats -> onStats()
-                        HomeTab.Profile -> onProfile()
-                        else -> selectedTab = tab
-                    }
-                }
+                selected = HomeTab.Home,
+                onSelect = onSelectTab
             )
         }
     ) { innerPadding ->
@@ -78,11 +66,19 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 18.dp, bottom = 20.dp),
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                top = 18.dp,
+                bottom = 20.dp
+            ),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             item {
-                Greeting(name = state.coachName, prompt = state.prompt)
+                Greeting(
+                    name = state.coachName,
+                    prompt = state.prompt
+                )
             }
 
             item {
@@ -138,14 +134,19 @@ fun HomeScreen(
 }
 
 @Composable
-private fun Greeting(name: String, prompt: String) {
+private fun Greeting(
+    name: String,
+    prompt: String
+) {
     androidx.compose.foundation.layout.Column {
         Text(
             text = "Welcome back, $name",
             style = MaterialTheme.typography.headlineMedium,
             color = FormUpColors.TextPrimary
         )
+
         Spacer(Modifier.height(6.dp))
+
         Text(
             text = prompt,
             style = MaterialTheme.typography.bodyMedium,
@@ -155,7 +156,10 @@ private fun Greeting(name: String, prompt: String) {
 }
 
 @Composable
-private fun InvitePlayerButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun InvitePlayerButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Button(
         onClick = onClick,
         modifier = modifier
@@ -172,7 +176,9 @@ private fun InvitePlayerButton(onClick: () -> Unit, modifier: Modifier = Modifie
             contentDescription = null,
             modifier = Modifier.size(18.dp)
         )
+
         Spacer(Modifier.size(8.dp))
+
         Text(
             text = "Invite Player",
             fontFamily = Mono,
