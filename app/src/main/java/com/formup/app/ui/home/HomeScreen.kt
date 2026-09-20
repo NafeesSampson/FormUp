@@ -13,12 +13,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,10 +49,14 @@ fun HomeScreen(
     onNotifications: () -> Unit = {},
     onInvitePlayer: () -> Unit = {},
     onStats: () -> Unit = {},
-    onProfile: () -> Unit = {},
+    onMatchDetails: () -> Unit = {},
+    onLineup: () -> Unit = {},
+    onAttendance: () -> Unit = {},
+    onViewResults: () -> Unit = {},
+    onSelectTab: (HomeTab) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    var selectedTab by remember { mutableStateOf(HomeTab.Home) }
+    var showAvailabilityInfo by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -62,16 +68,7 @@ fun HomeScreen(
             )
         },
         bottomBar = {
-            FormUpBottomBar(
-                selected = selectedTab,
-                onSelect = { tab ->
-                    when (tab) {
-                        HomeTab.Stats -> onStats()
-                        HomeTab.Profile -> onProfile()
-                        else -> selectedTab = tab
-                    }
-                }
-            )
+            FormUpBottomBar(selected = HomeTab.Home, onSelect = onSelectTab)
         }
     ) { innerPadding ->
         LazyColumn(
@@ -88,15 +85,15 @@ fun HomeScreen(
             item {
                 NextMatchCard(
                     match = state.nextMatch,
-                    onMatchDetails = { /* TODO: navigate to match details */ },
-                    onLineup = { /* TODO: navigate to lineup */ }
+                    onMatchDetails = onMatchDetails,
+                    onLineup = onLineup
                 )
             }
 
             item {
                 QuickActionsRow(
-                    onAttendance = { /* TODO */ },
-                    onSelection = { /* TODO */ },
+                    onAttendance = onAttendance,
+                    onSelection = onLineup,
                     onStats = onStats
                 )
             }
@@ -104,14 +101,14 @@ fun HomeScreen(
             item {
                 AvailabilityCard(
                     availability = state.availability,
-                    onInfo = { /* TODO: show availability info */ }
+                    onInfo = { showAvailabilityInfo = true }
                 )
             }
 
             item {
                 LastMatchCard(
                     match = state.lastMatch,
-                    onViewAll = { /* TODO: navigate to results */ }
+                    onViewAll = onViewResults
                 )
             }
 
@@ -134,6 +131,37 @@ fun HomeScreen(
                 )
             }
         }
+    }
+
+    if (showAvailabilityInfo) {
+        val availability = state.availability
+        AlertDialog(
+            onDismissRequest = { showAvailabilityInfo = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    showAvailabilityInfo = false
+                    onAttendance()
+                }) {
+                    Text("Set attendance", color = FormUpColors.PrimaryDeep)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAvailabilityInfo = false }) {
+                    Text("Close", color = FormUpColors.TextSecondary)
+                }
+            },
+            containerColor = FormUpColors.Surface,
+            title = { Text("Squad availability", style = MaterialTheme.typography.titleLarge) },
+            text = {
+                Text(
+                    text = "${availability.fit} fit, ${availability.doubtful} doubtful and " +
+                            "${availability.out} out of ${availability.total} players. " +
+                            "RSVPs update as players respond.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = FormUpColors.TextSecondary
+                )
+            }
+        )
     }
 }
 

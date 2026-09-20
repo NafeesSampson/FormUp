@@ -22,24 +22,25 @@ MERGED from [androidx.compose.ui:ui-tooling-preview-android:1.7.2] /Users/thomas
 MERGED from [androidx.compose.ui:ui-graphics-android:1.7.2] /Users/thomasnewman/.gradle/caches/transforms-4/486a3635b477339d5b6fc5367b53b865/transformed/ui-graphics-release/AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.compose.ui:ui-tooling-android:1.7.2] /Users/thomasnewman/.gradle/caches/transforms-4/c3802500651206294d974cf3c212d0b7/transformed/ui-tooling-release/AndroidManifest.xml:17:1-28:12
 MERGED from [androidx.activity:activity-compose:1.9.2] /Users/thomasnewman/.gradle/caches/transforms-4/a4f36ac7d77604a20c091764bd3f002f/transformed/activity-compose-1.9.2/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.emoji2:emoji2:1.3.0] /Users/thomasnewman/.gradle/caches/transforms-4/0ac9cdfb307af8fbe8c06cb1e42a9a91/transformed/emoji2-1.3.0/AndroidManifest.xml:17:1-35:12
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/07f9ecdb1f0bd3a7806e6c9b1a26ce20/transformed/lifecycle-process-2.8.6/AndroidManifest.xml:17:1-35:12
+MERGED from [androidx.lifecycle:lifecycle-runtime-compose-android:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/394c3f18436fbe9bb3b6b8ca34c0a32e/transformed/lifecycle-runtime-compose-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx-android:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/b62598828fbd94e0b612fb70cd6573a7/transformed/lifecycle-runtime-ktx-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/22d5a3be96ec29a56e615def7f95e3c6/transformed/lifecycle-livedata-core-2.8.6/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] /Users/thomasnewman/.gradle/caches/transforms-4/9738223a300f863404857126e7428a60/transformed/savedstate-ktx-1.2.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.savedstate:savedstate:1.2.1] /Users/thomasnewman/.gradle/caches/transforms-4/aacde650ecb66a4db6a4f468a432c5cf/transformed/savedstate-1.2.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-runtime-android:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/d3ea2bbdec338378495025878e47635d/transformed/lifecycle-runtime-release/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-android:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/53bfb40e2189659a54604d0cbf112e1e/transformed/lifecycle-viewmodel-release/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/189e6eaf3e1946886e3edc30a77f466c/transformed/lifecycle-viewmodel-ktx-2.8.6/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/e64c06a932110d982a03c3d4d73f9119/transformed/lifecycle-viewmodel-savedstate-2.8.6/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-compose-android:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/0d9438ad4de577769f2700a9f0c9f6bd/transformed/lifecycle-viewmodel-compose-release/AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.compose.material:material-icons-extended-android:1.7.2] /Users/thomasnewman/.gradle/caches/transforms-4/ae34082c5cb18d107e9ed872e1ca19f5/transformed/material-icons-extended-release/AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.compose.material:material-icons-core-android:1.7.2] /Users/thomasnewman/.gradle/caches/transforms-4/e24cf15d05254600add4575e993b3aae/transformed/material-icons-core-release/AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.compose.ui:ui-android:1.7.2] /Users/thomasnewman/.gradle/caches/transforms-4/ffd669f3be535f878b5e6ebe8af4f20c/transformed/ui-release/AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.autofill:autofill:1.0.0] /Users/thomasnewman/.gradle/caches/transforms-4/46b3b99fbb60efe97e7699af47f2d9e4/transformed/autofill-1.0.0/AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.graphics:graphics-path:1.0.1] /Users/thomasnewman/.gradle/caches/transforms-4/57cd56d1d5e9ab5f021b24b94a080eb8/transformed/graphics-path-1.0.1/AndroidManifest.xml:2:1-7:12
-MERGED from [androidx.emoji2:emoji2:1.3.0] /Users/thomasnewman/.gradle/caches/transforms-4/0ac9cdfb307af8fbe8c06cb1e42a9a91/transformed/emoji2-1.3.0/AndroidManifest.xml:17:1-35:12
 MERGED from [androidx.core:core:1.13.1] /Users/thomasnewman/.gradle/caches/transforms-4/0e12637407c5f4960f45542b38d7c0b2/transformed/core-1.13.1/AndroidManifest.xml:17:1-30:12
 MERGED from [androidx.customview:customview-poolingcontainer:1.0.0] /Users/thomasnewman/.gradle/caches/transforms-4/d0c3ac26894d8a3a2aa15d01f849c61c/transformed/customview-poolingcontainer-1.0.0/AndroidManifest.xml:17:1-23:12
-MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] /Users/thomasnewman/.gradle/caches/transforms-4/9738223a300f863404857126e7428a60/transformed/savedstate-ktx-1.2.1/AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.savedstate:savedstate:1.2.1] /Users/thomasnewman/.gradle/caches/transforms-4/aacde650ecb66a4db6a4f468a432c5cf/transformed/savedstate-1.2.1/AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.lifecycle:lifecycle-process:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/07f9ecdb1f0bd3a7806e6c9b1a26ce20/transformed/lifecycle-process-2.8.6/AndroidManifest.xml:17:1-35:12
-MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/22d5a3be96ec29a56e615def7f95e3c6/transformed/lifecycle-livedata-core-2.8.6/AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.lifecycle:lifecycle-runtime-compose-android:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/394c3f18436fbe9bb3b6b8ca34c0a32e/transformed/lifecycle-runtime-compose-release/AndroidManifest.xml:2:1-7:12
-MERGED from [androidx.lifecycle:lifecycle-viewmodel-android:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/53bfb40e2189659a54604d0cbf112e1e/transformed/lifecycle-viewmodel-release/AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.lifecycle:lifecycle-runtime-android:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/d3ea2bbdec338378495025878e47635d/transformed/lifecycle-runtime-release/AndroidManifest.xml:17:1-22:12
-MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/189e6eaf3e1946886e3edc30a77f466c/transformed/lifecycle-viewmodel-ktx-2.8.6/AndroidManifest.xml:2:1-7:12
-MERGED from [androidx.lifecycle:lifecycle-runtime-ktx-android:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/b62598828fbd94e0b612fb70cd6573a7/transformed/lifecycle-runtime-ktx-release/AndroidManifest.xml:2:1-7:12
-MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/e64c06a932110d982a03c3d4d73f9119/transformed/lifecycle-viewmodel-savedstate-2.8.6/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.core:core-ktx:1.13.1] /Users/thomasnewman/.gradle/caches/transforms-4/5977622ffd86ba97d05f4ec5f8a3b643/transformed/core-ktx-1.13.1/AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.compose.runtime:runtime-android:1.7.2] /Users/thomasnewman/.gradle/caches/transforms-4/8c9848baab8e45fee8c064400c6bcd7c/transformed/runtime-release/AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.compose.runtime:runtime-saveable-android:1.7.2] /Users/thomasnewman/.gradle/caches/transforms-4/4f54d644d3e0e285b4f269ec4dbfdb28/transformed/runtime-saveable-release/AndroidManifest.xml:2:1-7:12
@@ -65,10 +66,10 @@ MERGED from [androidx.compose.ui:ui-tooling-android:1.7.2] /Users/thomasnewman/.
 MERGED from [androidx.compose.ui:ui-tooling-android:1.7.2] /Users/thomasnewman/.gradle/caches/transforms-4/c3802500651206294d974cf3c212d0b7/transformed/ui-tooling-release/AndroidManifest.xml:22:5-26:19
 MERGED from [androidx.emoji2:emoji2:1.3.0] /Users/thomasnewman/.gradle/caches/transforms-4/0ac9cdfb307af8fbe8c06cb1e42a9a91/transformed/emoji2-1.3.0/AndroidManifest.xml:23:5-33:19
 MERGED from [androidx.emoji2:emoji2:1.3.0] /Users/thomasnewman/.gradle/caches/transforms-4/0ac9cdfb307af8fbe8c06cb1e42a9a91/transformed/emoji2-1.3.0/AndroidManifest.xml:23:5-33:19
-MERGED from [androidx.core:core:1.13.1] /Users/thomasnewman/.gradle/caches/transforms-4/0e12637407c5f4960f45542b38d7c0b2/transformed/core-1.13.1/AndroidManifest.xml:28:5-89
-MERGED from [androidx.core:core:1.13.1] /Users/thomasnewman/.gradle/caches/transforms-4/0e12637407c5f4960f45542b38d7c0b2/transformed/core-1.13.1/AndroidManifest.xml:28:5-89
 MERGED from [androidx.lifecycle:lifecycle-process:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/07f9ecdb1f0bd3a7806e6c9b1a26ce20/transformed/lifecycle-process-2.8.6/AndroidManifest.xml:23:5-33:19
 MERGED from [androidx.lifecycle:lifecycle-process:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/07f9ecdb1f0bd3a7806e6c9b1a26ce20/transformed/lifecycle-process-2.8.6/AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.core:core:1.13.1] /Users/thomasnewman/.gradle/caches/transforms-4/0e12637407c5f4960f45542b38d7c0b2/transformed/core-1.13.1/AndroidManifest.xml:28:5-89
+MERGED from [androidx.core:core:1.13.1] /Users/thomasnewman/.gradle/caches/transforms-4/0e12637407c5f4960f45542b38d7c0b2/transformed/core-1.13.1/AndroidManifest.xml:28:5-89
 MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /Users/thomasnewman/.gradle/caches/transforms-4/a0c2aa3c5472a3f7a7e25afbaf3d54b2/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
 MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /Users/thomasnewman/.gradle/caches/transforms-4/a0c2aa3c5472a3f7a7e25afbaf3d54b2/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
 MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/thomasnewman/.gradle/caches/transforms-4/967352968f26fe11f7e83589b7e797ca/transformed/profileinstaller-1.3.1/AndroidManifest.xml:23:5-53:19
@@ -155,6 +156,30 @@ MERGED from [androidx.compose.ui:ui-tooling-android:1.7.2] /Users/thomasnewman/.
 MERGED from [androidx.compose.ui:ui-tooling-android:1.7.2] /Users/thomasnewman/.gradle/caches/transforms-4/c3802500651206294d974cf3c212d0b7/transformed/ui-tooling-release/AndroidManifest.xml:20:5-44
 MERGED from [androidx.activity:activity-compose:1.9.2] /Users/thomasnewman/.gradle/caches/transforms-4/a4f36ac7d77604a20c091764bd3f002f/transformed/activity-compose-1.9.2/AndroidManifest.xml:5:5-44
 MERGED from [androidx.activity:activity-compose:1.9.2] /Users/thomasnewman/.gradle/caches/transforms-4/a4f36ac7d77604a20c091764bd3f002f/transformed/activity-compose-1.9.2/AndroidManifest.xml:5:5-44
+MERGED from [androidx.emoji2:emoji2:1.3.0] /Users/thomasnewman/.gradle/caches/transforms-4/0ac9cdfb307af8fbe8c06cb1e42a9a91/transformed/emoji2-1.3.0/AndroidManifest.xml:21:5-44
+MERGED from [androidx.emoji2:emoji2:1.3.0] /Users/thomasnewman/.gradle/caches/transforms-4/0ac9cdfb307af8fbe8c06cb1e42a9a91/transformed/emoji2-1.3.0/AndroidManifest.xml:21:5-44
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/07f9ecdb1f0bd3a7806e6c9b1a26ce20/transformed/lifecycle-process-2.8.6/AndroidManifest.xml:21:5-44
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/07f9ecdb1f0bd3a7806e6c9b1a26ce20/transformed/lifecycle-process-2.8.6/AndroidManifest.xml:21:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-compose-android:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/394c3f18436fbe9bb3b6b8ca34c0a32e/transformed/lifecycle-runtime-compose-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-compose-android:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/394c3f18436fbe9bb3b6b8ca34c0a32e/transformed/lifecycle-runtime-compose-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx-android:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/b62598828fbd94e0b612fb70cd6573a7/transformed/lifecycle-runtime-ktx-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx-android:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/b62598828fbd94e0b612fb70cd6573a7/transformed/lifecycle-runtime-ktx-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/22d5a3be96ec29a56e615def7f95e3c6/transformed/lifecycle-livedata-core-2.8.6/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/22d5a3be96ec29a56e615def7f95e3c6/transformed/lifecycle-livedata-core-2.8.6/AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] /Users/thomasnewman/.gradle/caches/transforms-4/9738223a300f863404857126e7428a60/transformed/savedstate-ktx-1.2.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] /Users/thomasnewman/.gradle/caches/transforms-4/9738223a300f863404857126e7428a60/transformed/savedstate-ktx-1.2.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate:1.2.1] /Users/thomasnewman/.gradle/caches/transforms-4/aacde650ecb66a4db6a4f468a432c5cf/transformed/savedstate-1.2.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate:1.2.1] /Users/thomasnewman/.gradle/caches/transforms-4/aacde650ecb66a4db6a4f468a432c5cf/transformed/savedstate-1.2.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-android:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/d3ea2bbdec338378495025878e47635d/transformed/lifecycle-runtime-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-android:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/d3ea2bbdec338378495025878e47635d/transformed/lifecycle-runtime-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-android:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/53bfb40e2189659a54604d0cbf112e1e/transformed/lifecycle-viewmodel-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-android:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/53bfb40e2189659a54604d0cbf112e1e/transformed/lifecycle-viewmodel-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/189e6eaf3e1946886e3edc30a77f466c/transformed/lifecycle-viewmodel-ktx-2.8.6/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/189e6eaf3e1946886e3edc30a77f466c/transformed/lifecycle-viewmodel-ktx-2.8.6/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/e64c06a932110d982a03c3d4d73f9119/transformed/lifecycle-viewmodel-savedstate-2.8.6/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/e64c06a932110d982a03c3d4d73f9119/transformed/lifecycle-viewmodel-savedstate-2.8.6/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-compose-android:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/0d9438ad4de577769f2700a9f0c9f6bd/transformed/lifecycle-viewmodel-compose-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-compose-android:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/0d9438ad4de577769f2700a9f0c9f6bd/transformed/lifecycle-viewmodel-compose-release/AndroidManifest.xml:5:5-44
 MERGED from [androidx.compose.material:material-icons-extended-android:1.7.2] /Users/thomasnewman/.gradle/caches/transforms-4/ae34082c5cb18d107e9ed872e1ca19f5/transformed/material-icons-extended-release/AndroidManifest.xml:5:5-44
 MERGED from [androidx.compose.material:material-icons-extended-android:1.7.2] /Users/thomasnewman/.gradle/caches/transforms-4/ae34082c5cb18d107e9ed872e1ca19f5/transformed/material-icons-extended-release/AndroidManifest.xml:5:5-44
 MERGED from [androidx.compose.material:material-icons-core-android:1.7.2] /Users/thomasnewman/.gradle/caches/transforms-4/e24cf15d05254600add4575e993b3aae/transformed/material-icons-core-release/AndroidManifest.xml:5:5-44
@@ -165,32 +190,10 @@ MERGED from [androidx.autofill:autofill:1.0.0] /Users/thomasnewman/.gradle/cache
 MERGED from [androidx.autofill:autofill:1.0.0] /Users/thomasnewman/.gradle/caches/transforms-4/46b3b99fbb60efe97e7699af47f2d9e4/transformed/autofill-1.0.0/AndroidManifest.xml:20:5-22:41
 MERGED from [androidx.graphics:graphics-path:1.0.1] /Users/thomasnewman/.gradle/caches/transforms-4/57cd56d1d5e9ab5f021b24b94a080eb8/transformed/graphics-path-1.0.1/AndroidManifest.xml:5:5-44
 MERGED from [androidx.graphics:graphics-path:1.0.1] /Users/thomasnewman/.gradle/caches/transforms-4/57cd56d1d5e9ab5f021b24b94a080eb8/transformed/graphics-path-1.0.1/AndroidManifest.xml:5:5-44
-MERGED from [androidx.emoji2:emoji2:1.3.0] /Users/thomasnewman/.gradle/caches/transforms-4/0ac9cdfb307af8fbe8c06cb1e42a9a91/transformed/emoji2-1.3.0/AndroidManifest.xml:21:5-44
-MERGED from [androidx.emoji2:emoji2:1.3.0] /Users/thomasnewman/.gradle/caches/transforms-4/0ac9cdfb307af8fbe8c06cb1e42a9a91/transformed/emoji2-1.3.0/AndroidManifest.xml:21:5-44
 MERGED from [androidx.core:core:1.13.1] /Users/thomasnewman/.gradle/caches/transforms-4/0e12637407c5f4960f45542b38d7c0b2/transformed/core-1.13.1/AndroidManifest.xml:20:5-44
 MERGED from [androidx.core:core:1.13.1] /Users/thomasnewman/.gradle/caches/transforms-4/0e12637407c5f4960f45542b38d7c0b2/transformed/core-1.13.1/AndroidManifest.xml:20:5-44
 MERGED from [androidx.customview:customview-poolingcontainer:1.0.0] /Users/thomasnewman/.gradle/caches/transforms-4/d0c3ac26894d8a3a2aa15d01f849c61c/transformed/customview-poolingcontainer-1.0.0/AndroidManifest.xml:20:5-21:38
 MERGED from [androidx.customview:customview-poolingcontainer:1.0.0] /Users/thomasnewman/.gradle/caches/transforms-4/d0c3ac26894d8a3a2aa15d01f849c61c/transformed/customview-poolingcontainer-1.0.0/AndroidManifest.xml:20:5-21:38
-MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] /Users/thomasnewman/.gradle/caches/transforms-4/9738223a300f863404857126e7428a60/transformed/savedstate-ktx-1.2.1/AndroidManifest.xml:20:5-44
-MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] /Users/thomasnewman/.gradle/caches/transforms-4/9738223a300f863404857126e7428a60/transformed/savedstate-ktx-1.2.1/AndroidManifest.xml:20:5-44
-MERGED from [androidx.savedstate:savedstate:1.2.1] /Users/thomasnewman/.gradle/caches/transforms-4/aacde650ecb66a4db6a4f468a432c5cf/transformed/savedstate-1.2.1/AndroidManifest.xml:20:5-44
-MERGED from [androidx.savedstate:savedstate:1.2.1] /Users/thomasnewman/.gradle/caches/transforms-4/aacde650ecb66a4db6a4f468a432c5cf/transformed/savedstate-1.2.1/AndroidManifest.xml:20:5-44
-MERGED from [androidx.lifecycle:lifecycle-process:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/07f9ecdb1f0bd3a7806e6c9b1a26ce20/transformed/lifecycle-process-2.8.6/AndroidManifest.xml:21:5-44
-MERGED from [androidx.lifecycle:lifecycle-process:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/07f9ecdb1f0bd3a7806e6c9b1a26ce20/transformed/lifecycle-process-2.8.6/AndroidManifest.xml:21:5-44
-MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/22d5a3be96ec29a56e615def7f95e3c6/transformed/lifecycle-livedata-core-2.8.6/AndroidManifest.xml:20:5-44
-MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/22d5a3be96ec29a56e615def7f95e3c6/transformed/lifecycle-livedata-core-2.8.6/AndroidManifest.xml:20:5-44
-MERGED from [androidx.lifecycle:lifecycle-runtime-compose-android:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/394c3f18436fbe9bb3b6b8ca34c0a32e/transformed/lifecycle-runtime-compose-release/AndroidManifest.xml:5:5-44
-MERGED from [androidx.lifecycle:lifecycle-runtime-compose-android:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/394c3f18436fbe9bb3b6b8ca34c0a32e/transformed/lifecycle-runtime-compose-release/AndroidManifest.xml:5:5-44
-MERGED from [androidx.lifecycle:lifecycle-viewmodel-android:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/53bfb40e2189659a54604d0cbf112e1e/transformed/lifecycle-viewmodel-release/AndroidManifest.xml:20:5-44
-MERGED from [androidx.lifecycle:lifecycle-viewmodel-android:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/53bfb40e2189659a54604d0cbf112e1e/transformed/lifecycle-viewmodel-release/AndroidManifest.xml:20:5-44
-MERGED from [androidx.lifecycle:lifecycle-runtime-android:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/d3ea2bbdec338378495025878e47635d/transformed/lifecycle-runtime-release/AndroidManifest.xml:20:5-44
-MERGED from [androidx.lifecycle:lifecycle-runtime-android:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/d3ea2bbdec338378495025878e47635d/transformed/lifecycle-runtime-release/AndroidManifest.xml:20:5-44
-MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/189e6eaf3e1946886e3edc30a77f466c/transformed/lifecycle-viewmodel-ktx-2.8.6/AndroidManifest.xml:5:5-44
-MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/189e6eaf3e1946886e3edc30a77f466c/transformed/lifecycle-viewmodel-ktx-2.8.6/AndroidManifest.xml:5:5-44
-MERGED from [androidx.lifecycle:lifecycle-runtime-ktx-android:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/b62598828fbd94e0b612fb70cd6573a7/transformed/lifecycle-runtime-ktx-release/AndroidManifest.xml:5:5-44
-MERGED from [androidx.lifecycle:lifecycle-runtime-ktx-android:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/b62598828fbd94e0b612fb70cd6573a7/transformed/lifecycle-runtime-ktx-release/AndroidManifest.xml:5:5-44
-MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/e64c06a932110d982a03c3d4d73f9119/transformed/lifecycle-viewmodel-savedstate-2.8.6/AndroidManifest.xml:20:5-44
-MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/e64c06a932110d982a03c3d4d73f9119/transformed/lifecycle-viewmodel-savedstate-2.8.6/AndroidManifest.xml:20:5-44
 MERGED from [androidx.core:core-ktx:1.13.1] /Users/thomasnewman/.gradle/caches/transforms-4/5977622ffd86ba97d05f4ec5f8a3b643/transformed/core-ktx-1.13.1/AndroidManifest.xml:5:5-44
 MERGED from [androidx.core:core-ktx:1.13.1] /Users/thomasnewman/.gradle/caches/transforms-4/5977622ffd86ba97d05f4ec5f8a3b643/transformed/core-ktx-1.13.1/AndroidManifest.xml:5:5-44
 MERGED from [androidx.compose.runtime:runtime-android:1.7.2] /Users/thomasnewman/.gradle/caches/transforms-4/8c9848baab8e45fee8c064400c6bcd7c/transformed/runtime-release/AndroidManifest.xml:5:5-44
@@ -243,6 +246,12 @@ ADDED from [androidx.emoji2:emoji2:1.3.0] /Users/thomasnewman/.gradle/caches/tra
 		ADDED from [androidx.emoji2:emoji2:1.3.0] /Users/thomasnewman/.gradle/caches/transforms-4/0ac9cdfb307af8fbe8c06cb1e42a9a91/transformed/emoji2-1.3.0/AndroidManifest.xml:31:17-49
 	android:name
 		ADDED from [androidx.emoji2:emoji2:1.3.0] /Users/thomasnewman/.gradle/caches/transforms-4/0ac9cdfb307af8fbe8c06cb1e42a9a91/transformed/emoji2-1.3.0/AndroidManifest.xml:30:17-75
+meta-data#androidx.lifecycle.ProcessLifecycleInitializer
+ADDED from [androidx.lifecycle:lifecycle-process:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/07f9ecdb1f0bd3a7806e6c9b1a26ce20/transformed/lifecycle-process-2.8.6/AndroidManifest.xml:29:13-31:52
+	android:value
+		ADDED from [androidx.lifecycle:lifecycle-process:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/07f9ecdb1f0bd3a7806e6c9b1a26ce20/transformed/lifecycle-process-2.8.6/AndroidManifest.xml:31:17-49
+	android:name
+		ADDED from [androidx.lifecycle:lifecycle-process:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/07f9ecdb1f0bd3a7806e6c9b1a26ce20/transformed/lifecycle-process-2.8.6/AndroidManifest.xml:30:17-78
 permission#${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
 ADDED from [androidx.core:core:1.13.1] /Users/thomasnewman/.gradle/caches/transforms-4/0e12637407c5f4960f45542b38d7c0b2/transformed/core-1.13.1/AndroidManifest.xml:22:5-24:47
 	android:protectionLevel
@@ -263,12 +272,6 @@ uses-permission#com.formup.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
 ADDED from [androidx.core:core:1.13.1] /Users/thomasnewman/.gradle/caches/transforms-4/0e12637407c5f4960f45542b38d7c0b2/transformed/core-1.13.1/AndroidManifest.xml:26:5-97
 	android:name
 		ADDED from [androidx.core:core:1.13.1] /Users/thomasnewman/.gradle/caches/transforms-4/0e12637407c5f4960f45542b38d7c0b2/transformed/core-1.13.1/AndroidManifest.xml:26:22-94
-meta-data#androidx.lifecycle.ProcessLifecycleInitializer
-ADDED from [androidx.lifecycle:lifecycle-process:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/07f9ecdb1f0bd3a7806e6c9b1a26ce20/transformed/lifecycle-process-2.8.6/AndroidManifest.xml:29:13-31:52
-	android:value
-		ADDED from [androidx.lifecycle:lifecycle-process:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/07f9ecdb1f0bd3a7806e6c9b1a26ce20/transformed/lifecycle-process-2.8.6/AndroidManifest.xml:31:17-49
-	android:name
-		ADDED from [androidx.lifecycle:lifecycle-process:2.8.6] /Users/thomasnewman/.gradle/caches/transforms-4/07f9ecdb1f0bd3a7806e6c9b1a26ce20/transformed/lifecycle-process-2.8.6/AndroidManifest.xml:30:17-78
 meta-data#androidx.profileinstaller.ProfileInstallerInitializer
 ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/thomasnewman/.gradle/caches/transforms-4/967352968f26fe11f7e83589b7e797ca/transformed/profileinstaller-1.3.1/AndroidManifest.xml:29:13-31:52
 	android:value
