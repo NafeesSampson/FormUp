@@ -15,13 +15,14 @@ import com.formup.app.ui.home.HomeScreen
 import com.formup.app.ui.home.components.HomeTab
 import com.formup.app.ui.invite.InvitePlayerScreen
 import com.formup.app.ui.notifications.NotificationsScreen
+import com.formup.app.ui.profile.ProfileScreen
 import com.formup.app.ui.stats.MatchReportScreen
 import com.formup.app.ui.stats.StatsInputScreen
 import com.formup.app.ui.stats.StatsScreen
 import com.formup.app.ui.theme.FormUpColors
 import com.formup.app.ui.theme.FormUpTheme
 
-private enum class AppScreen { Home, Notifications, InvitePlayer, Stats, StatsInput, MatchReport }
+private enum class AppScreen { Home, Notifications, InvitePlayer, Stats, StatsInput, MatchReport, Profile }
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,7 +48,8 @@ private fun FormUpApp() {
         AppScreen.Home -> HomeScreen(
             onNotifications = { screen = AppScreen.Notifications },
             onInvitePlayer = { screen = AppScreen.InvitePlayer },
-            onStats = { screen = AppScreen.Stats }
+            onStats = { screen = AppScreen.Stats },
+            onProfile = { screen = AppScreen.Profile }
         )
         AppScreen.Notifications -> NotificationsScreen(
             onBack = { screen = AppScreen.Home }
@@ -61,7 +63,11 @@ private fun FormUpApp() {
             onInputStats = { screen = AppScreen.StatsInput },
             onViewFullMatchReport = { screen = AppScreen.MatchReport },
             onSelectTab = { tab ->
-                screen = if (tab == HomeTab.Home) AppScreen.Home else AppScreen.Stats
+                screen = when (tab) {
+                    HomeTab.Home -> AppScreen.Home
+                    HomeTab.Profile -> AppScreen.Profile
+                    else -> AppScreen.Stats
+                }
             }
         )
         AppScreen.StatsInput -> StatsInputScreen(
@@ -73,6 +79,16 @@ private fun FormUpApp() {
         AppScreen.MatchReport -> MatchReportScreen(
             onBack = { screen = AppScreen.Stats },
             onNotifications = { screen = AppScreen.Notifications }
+        )
+        AppScreen.Profile -> ProfileScreen(
+            onNotifications = { screen = AppScreen.Notifications },
+            onSelectTab = { tab ->
+                screen = when (tab) {
+                    HomeTab.Stats -> AppScreen.Stats
+                    HomeTab.Profile -> AppScreen.Profile
+                    else -> AppScreen.Home
+                }
+            }
         )
     }
 }

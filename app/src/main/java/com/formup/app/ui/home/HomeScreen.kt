@@ -47,6 +47,7 @@ fun HomeScreen(
     onNotifications: () -> Unit = {},
     onInvitePlayer: () -> Unit = {},
     onStats: () -> Unit = {},
+    onProfile: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var selectedTab by remember { mutableStateOf(HomeTab.Home) }
@@ -64,10 +65,10 @@ fun HomeScreen(
             FormUpBottomBar(
                 selected = selectedTab,
                 onSelect = { tab ->
-                    if (tab == HomeTab.Stats) {
-                        onStats()
-                    } else {
-                        selectedTab = tab
+                    when (tab) {
+                        HomeTab.Stats -> onStats()
+                        HomeTab.Profile -> onProfile()
+                        else -> selectedTab = tab
                     }
                 }
             )
