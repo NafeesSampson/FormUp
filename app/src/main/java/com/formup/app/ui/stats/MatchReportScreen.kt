@@ -58,7 +58,8 @@ fun MatchReportScreen(
     state: MatchReportUiState = SampleMatchReportState,
     onBack: () -> Unit = {},
     onNotifications: () -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onSelectTab: (HomeTab) -> Unit = {}
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -67,7 +68,10 @@ fun MatchReportScreen(
             FormUpTopBar(hasUnread = false, onNotifications = onNotifications)
         },
         bottomBar = {
-            FormUpBottomBar(selected = HomeTab.Stats, onSelect = {})
+            FormUpBottomBar(
+                selected = HomeTab.Stats,
+                onSelect = onSelectTab
+            )
         }
     ) { innerPadding ->
         Column(
