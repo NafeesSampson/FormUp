@@ -202,8 +202,7 @@ class FormUpViewModel : ViewModel() {
         if (index >= 0) fixtureList[index] = transform(fixtureList[index])
     }
 
-    /** Persists the Stats Input screen: scoreline, per-player lines, timeline and follow-ups. */
-    fun saveMatchStats(
+     fun saveMatchStats(
         fixtureId: String,
         entries: List<PlayerStatEntry>,
         teamScore: Int,
@@ -220,17 +219,18 @@ class FormUpViewModel : ViewModel() {
                 )
             }
 
-        val events = buildEvents(lines)
 
-        updateFixture(fixtureId) {
-            it.copy(
-                played = true,
-                teamScore = teamScore,
-                opponentScore = opponentScore,
-                playerStats = lines,
-                events = if (events.isEmpty()) it.events else events
-            )
-        }
+         val events = buildEvents(lines)
+
+         updateFixture(fixtureId) {
+             it.copy(
+                 played = true,
+                 teamScore = teamScore.coerceAtLeast(0),
+                 opponentScore = opponentScore.coerceAtLeast(0),
+                 playerStats = lines,
+                 events = events
+             )
+         }
 
         val saved = fixture(fixtureId) ?: return
         activityList.add(

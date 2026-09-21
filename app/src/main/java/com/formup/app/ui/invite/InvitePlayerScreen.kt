@@ -63,6 +63,7 @@ fun InvitePlayerScreen(
     onDownloadQr: () -> Unit = {},
     onDone: () -> Unit = {},
     onNotifications: () -> Unit = {},
+    onSelectTab: (HomeTab) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -77,7 +78,7 @@ fun InvitePlayerScreen(
         bottomBar = {
             FormUpBottomBar(
                 selected = HomeTab.Home,
-                onSelect = {}
+                onSelect = onSelectTab
             )
         }
     ) { innerPadding ->

@@ -14,11 +14,6 @@
           </set>
         </option>
       </GradleProjectSettings>
-      <GradleProjectSettings>
-        <option name="testRunner" value="CHOOSE_PER_TEST" />
-        <option name="externalProjectPath" value="$USER_HOME$/Downloads/FormUp" />
-        <option name="gradleJvm" value="jbr-21" />
-      </GradleProjectSettings>
     </option>
   </component>
 </project>

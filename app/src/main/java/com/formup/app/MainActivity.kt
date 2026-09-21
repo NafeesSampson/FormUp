@@ -166,7 +166,8 @@ private fun FormUpApp(viewModel: FormUpViewModel = viewModel()) {
             },
             onDownloadQr = { viewModel.notify("QR code saved to downloads") },
             onDone = { viewModel.back() },
-            onNotifications = openNotifications
+            onNotifications = openNotifications,
+                    onSelectTab = selectTab
         )
 
         Destination.EditProfile -> EditProfileScreen(
@@ -189,22 +190,32 @@ private fun FormUpApp(viewModel: FormUpViewModel = viewModel()) {
 
         is Destination.StatsInput -> {
             val inputState = viewModel.statsInputState(screen.fixtureId)
+
             StatsInputScreen(
                 state = inputState,
                 onBack = { viewModel.back() },
-                onCustomizeColumns = { viewModel.notify("Column customization coming soon") },
-                onCancel = { viewModel.back() },
-                onSave = { playerRows ->
-                    viewModel.saveMatchStats(screen.fixtureId, playerRows, inputState.homeScore, inputState.awayScore)
+                onCustomizeColumns = {
+                    viewModel.notify("Column customization coming soon")
                 },
-                onNotifications = openNotifications
+                onCancel = { viewModel.back() },
+                onSave = { playerRows, homeScore, awayScore ->
+                    viewModel.saveMatchStats(
+                        screen.fixtureId,
+                        playerRows,
+                        homeScore,
+                        awayScore
+                    )
+                },
+                onNotifications = openNotifications,
+                onSelectTab = selectTab
             )
         }
 
         is Destination.MatchReport -> MatchReportScreen(
             state = viewModel.matchReportState(screen.fixtureId),
             onBack = { viewModel.back() },
-            onNotifications = openNotifications
+            onNotifications = openNotifications,
+                    onSelectTab = selectTab
         )
 
         Destination.Calendar, Destination.Team, is Destination.MatchDetails, is Destination.Attendance, is Destination.Lineup -> {
