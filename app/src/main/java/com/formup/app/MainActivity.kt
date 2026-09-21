@@ -17,7 +17,9 @@ import com.formup.app.ui.auth.LoginScreen
 import com.formup.app.ui.auth.SignUpScreen
 import com.formup.app.ui.calendar.AttendanceScreen
 import com.formup.app.ui.calendar.CalendarScreen
+import com.formup.app.ui.calendar.ManageEventScreen
 import com.formup.app.ui.calendar.MatchDetailsScreen
+import com.formup.app.ui.calendar.SampleCalendarState
 import com.formup.app.ui.home.HomeScreen
 import com.formup.app.ui.home.components.HomeTab
 import com.formup.app.ui.invite.InvitePlayerScreen
@@ -42,6 +44,7 @@ private enum class AppScreen {
     Team,
     AddPlayer,
     Calendar,
+    ManageEvent,
     MatchDetails,
     Attendance,
     Stats,
@@ -70,6 +73,7 @@ class MainActivity : ComponentActivity() {
 private fun FormUpApp() {
     var screen by remember { mutableStateOf(AppScreen.Login) }
     var teamState by remember { mutableStateOf(SampleTeamState) }
+    var calendarEvents by remember { mutableStateOf(SampleCalendarState.events) }
 
     fun routeTab(tab: HomeTab): AppScreen = when (tab) {
         HomeTab.Home -> AppScreen.Home
@@ -139,10 +143,20 @@ private fun FormUpApp() {
         )
 
         AppScreen.Calendar -> CalendarScreen(
+            state = SampleCalendarState.copy(events = calendarEvents),
             onNotifications = { screen = AppScreen.Notifications },
+            onManageTrainingOrLineup = { screen = AppScreen.ManageEvent },
             onViewMatchDetails = { screen = AppScreen.MatchDetails },
             onViewTeamAttendance = { screen = AppScreen.Attendance },
             onSelectTab = { screen = routeTab(it) }
+        )
+
+        AppScreen.ManageEvent -> ManageEventScreen(
+            onBack = { screen = AppScreen.Calendar },
+            onEventCreated = { event ->
+                calendarEvents = calendarEvents + event
+                screen = AppScreen.Calendar
+            }
         )
 
         AppScreen.MatchDetails -> MatchDetailsScreen(

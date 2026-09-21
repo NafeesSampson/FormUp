@@ -2,7 +2,6 @@ package com.formup.app.ui.calendar
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,8 +23,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.EditCalendar
 import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -63,6 +62,7 @@ fun CalendarScreen(
     state: CalendarUiState = SampleCalendarState,
     onPreviousMonth: () -> Unit = {},
     onNextMonth: () -> Unit = {},
+    onManageTrainingOrLineup: () -> Unit = {},
     onViewMatchDetails: (CalendarEvent.Match) -> Unit = {},
     onViewTeamAttendance: (CalendarEvent.Training) -> Unit = {},
     onNotifications: () -> Unit = {},
@@ -70,7 +70,6 @@ fun CalendarScreen(
     modifier: Modifier = Modifier
 ) {
     var selectedDate by remember { mutableStateOf(state.selectedDate) }
-    var attendanceByEvent by remember { mutableStateOf(mapOf<String, AttendanceChoice>()) }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -100,10 +99,6 @@ fun CalendarScreen(
                 }
             }
 
-            state.actionBanner?.let { banner ->
-                item { ActionBannerCard(banner) }
-            }
-
             item {
                 MonthGrid(
                     weekdayLetters = state.weekdayLetters,
@@ -113,15 +108,13 @@ fun CalendarScreen(
                 )
             }
 
+            item { ManageEventPill(onClick = onManageTrainingOrLineup) }
+
             item {
-                Text(
-                    text = state.selectedDateLabel,
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = FormUpColors.TextPrimary
-                )
+                Text("Upcoming", style = MaterialTheme.typography.headlineMedium, color = FormUpColors.TextPrimary)
             }
 
-            items(state.events) { event ->
+            items(state.events, key = { it.id }) { event ->
                 when (event) {
                     is CalendarEvent.Match -> MatchEventCard(
                         event = event,
@@ -129,10 +122,6 @@ fun CalendarScreen(
                     )
                     is CalendarEvent.Training -> TrainingEventCard(
                         event = event,
-                        selected = attendanceByEvent[event.id] ?: event.myAttendance,
-                        onSelectAttendance = { choice ->
-                            attendanceByEvent = attendanceByEvent + (event.id to choice)
-                        },
                         onViewTeamAttendance = { onViewTeamAttendance(event) }
                     )
                 }
@@ -156,21 +145,24 @@ private fun MonthNavButton(icon: androidx.compose.ui.graphics.vector.ImageVector
 }
 
 @Composable
-private fun ActionBannerCard(banner: ActionBanner) {
+private fun ManageEventPill(onClick: () -> Unit) {
     Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(52.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(14.dp),
         color = FormUpColors.AmberTint,
         border = BorderStroke(1.dp, FormUpColors.Amber)
     ) {
-        Row(Modifier.padding(14.dp)) {
-            Icon(Icons.Filled.Info, contentDescription = null, tint = FormUpColors.AmberIcon, modifier = Modifier.size(20.dp))
-            Spacer(Modifier.size(10.dp))
-            Column {
-                Text(banner.title, style = MaterialTheme.typography.titleMedium, color = FormUpColors.TextPrimary)
-                Spacer(Modifier.height(2.dp))
-                Text(banner.message, style = MaterialTheme.typography.bodySmall, color = FormUpColors.TextSecondary)
-            }
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.Filled.EditCalendar, contentDescription = null, tint = FormUpColors.AmberIcon, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.size(8.dp))
+            Text("Manage Training or Lineup", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = FormUpColors.AmberIcon)
         }
     }
 }
@@ -246,7 +238,7 @@ private fun MatchEventCard(event: CalendarEvent.Match, onViewDetails: () -> Unit
         Column(Modifier.padding(16.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Spacer(Modifier.weight(1f))
-                StatusPill(text = "Match Day", background = FormUpColors.Mint, contentColor = FormUpColors.PrimaryDeep)
+                StatusPill(text = event.dateLabel, background = FormUpColors.Mint, contentColor = FormUpColors.PrimaryDeep)
             }
             Spacer(Modifier.height(4.dp))
             Text("vs. ${event.opponent}", style = MaterialTheme.typography.titleLarge, color = FormUpColors.TextPrimary)
@@ -268,12 +260,7 @@ private fun MatchEventCard(event: CalendarEvent.Match, onViewDetails: () -> Unit
 }
 
 @Composable
-private fun TrainingEventCard(
-    event: CalendarEvent.Training,
-    selected: AttendanceChoice?,
-    onSelectAttendance: (AttendanceChoice) -> Unit,
-    onViewTeamAttendance: () -> Unit
-) {
+private fun TrainingEventCard(event: CalendarEvent.Training, onViewTeamAttendance: () -> Unit) {
     SectionCard(modifier = Modifier.fillMaxWidth()) {
         Text("TRAINING", fontFamily = Mono, fontSize = 11.sp, fontWeight = FontWeight.Medium, color = FormUpColors.Primary)
         Spacer(Modifier.height(4.dp))
@@ -283,21 +270,6 @@ private fun TrainingEventCard(
         Spacer(Modifier.height(4.dp))
         InfoLine(Icons.Filled.LocationOn, event.location)
         Spacer(Modifier.height(12.dp))
-        HorizontalDivider(color = FormUpColors.Hairline)
-        Spacer(Modifier.height(12.dp))
-        Text("Your Attendance", fontFamily = Mono, fontSize = 11.sp, color = FormUpColors.TextSecondary)
-        Spacer(Modifier.height(8.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            AttendanceChoice.entries.forEach { choice ->
-                AttendancePill(
-                    label = choice.name.lowercase().replaceFirstChar { it.uppercase() },
-                    selected = selected == choice,
-                    onClick = { onSelectAttendance(choice) },
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
-        Spacer(Modifier.height(10.dp))
         OutlinedButton(
             onClick = onViewTeamAttendance,
             shape = RoundedCornerShape(10.dp),
@@ -321,24 +293,7 @@ private fun InfoLine(icon: androidx.compose.ui.graphics.vector.ImageVector, text
     }
 }
 
-@Composable
-private fun AttendancePill(label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Surface(
-        modifier = modifier.clickable(onClick = onClick),
-        shape = RoundedCornerShape(20.dp),
-        color = if (selected) FormUpColors.Mint else FormUpColors.Surface,
-        border = BorderStroke(1.dp, if (selected) FormUpColors.Mint else FormUpColors.Hairline)
-    ) {
-        Text(
-            label,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-            color = if (selected) FormUpColors.PrimaryDeep else FormUpColors.TextPrimary,
-            modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp)
-        )
-    }
-}
-
-@Preview(showBackground = true, widthDp = 360, heightDp = 1200)
+@Preview(showBackground = true, widthDp = 360, heightDp = 1100)
 @Composable
 private fun CalendarScreenPreview() {
     FormUpTheme { CalendarScreen() }
