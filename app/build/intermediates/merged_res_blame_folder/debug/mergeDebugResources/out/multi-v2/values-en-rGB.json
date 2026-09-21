@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.formup.app-mergeDebugResources-44:/values-en-rGB/values-en-rGB.xml",
+            "outputFile": "com.formup.app-mergeDebugResources-45:/values-en-rGB/values-en-rGB.xml",
             "map": [
                 {
                     "source": "C:\\Users\\nafee\\.gradle\\caches\\transforms-4\\ffd669f3be535f878b5e6ebe8af4f20c\\transformed\\ui-release\\res\\values-en-rGB\\values-en-rGB.xml",

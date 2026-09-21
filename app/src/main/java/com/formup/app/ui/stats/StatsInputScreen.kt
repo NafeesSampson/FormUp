@@ -1,6 +1,8 @@
 package com.formup.app.ui.stats
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -53,18 +55,49 @@ import com.formup.app.ui.theme.FormUpColors
 import com.formup.app.ui.theme.FormUpTheme
 import com.formup.app.ui.theme.Mono
 
+
 @Composable
 fun StatsInputScreen(
     state: StatsInputUiState = SampleStatsInputState,
     onBack: () -> Unit = {},
     onCustomizeColumns: () -> Unit = {},
     onCancel: () -> Unit = {},
-    onSave: (List<PlayerStatEntry>) -> Unit = {},
+    onSave: (List<PlayerStatEntry>, Int, Int) -> Unit = { _, _, _ -> },
     onNotifications: () -> Unit = {},
+    onSelectTab: (HomeTab) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val playerRows = remember {
-        mutableStateListOf<PlayerStatEntry>().apply { addAll(state.players) }
+    val playerRows = remember(state.players) {
+        mutableStateListOf<PlayerStatEntry>().apply {
+            addAll(state.players)
+        }
+    }
+
+    var homeScore by remember(state.homeScore) {
+        androidx.compose.runtime.mutableIntStateOf(state.homeScore)
+    }
+
+    var awayScore by remember(state.awayScore) {
+        androidx.compose.runtime.mutableIntStateOf(state.awayScore)
+    }
+
+    val playerGoalTotal = playerRows.sumOf { it.goals }
+
+
+    var lastGoalTotal by remember {
+        androidx.compose.runtime.mutableIntStateOf(playerGoalTotal)
+    }
+
+    fun updateGoals(index: Int, delta: Int) {
+        val oldGoals = playerRows[index].goals
+        val newGoals = (oldGoals + delta).coerceAtLeast(0)
+        val actualDelta = newGoals - oldGoals
+
+        if (actualDelta != 0) {
+            playerRows[index] = playerRows[index].copy(goals = newGoals)
+            homeScore = (homeScore + actualDelta).coerceAtLeast(0)
+            lastGoalTotal += actualDelta
+        }
     }
 
     Scaffold(
@@ -74,7 +107,10 @@ fun StatsInputScreen(
             FormUpTopBar(hasUnread = false, onNotifications = onNotifications)
         },
         bottomBar = {
-            FormUpBottomBar(selected = HomeTab.Stats, onSelect = {})
+            FormUpBottomBar(
+                selected = HomeTab.Stats,
+                onSelect = onSelectTab
+            )
         }
     ) { innerPadding ->
         Column(
@@ -140,14 +176,26 @@ fun StatsInputScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        ScoreField(label = state.homeLabel, score = state.homeScore, modifier = Modifier.weight(1f))
+                        ScoreField(
+                            label = state.homeLabel,
+                            score = homeScore,
+                            onScoreChange = { homeScore = it },
+                            modifier = Modifier.weight(1f)
+                        )
+
                         Text(
                             text = ":",
                             style = MaterialTheme.typography.titleLarge,
                             color = FormUpColors.TextSecondary,
                             modifier = Modifier.padding(horizontal = 12.dp)
                         )
-                        ScoreField(label = state.awayLabel, score = state.awayScore, modifier = Modifier.weight(1f))
+
+                        ScoreField(
+                            label = state.awayLabel,
+                            score = awayScore,
+                            onScoreChange = { awayScore = it },
+                            modifier = Modifier.weight(1f)
+                        )
                     }
                 }
 
@@ -212,10 +260,11 @@ fun StatsInputScreen(
                             PlayerStatRow(
                                 player = player,
                                 onGoalsChange = { delta ->
-                                    playerRows[index] = player.copy(goals = (player.goals + delta).coerceAtLeast(0))
+                                    updateGoals(index, delta)
                                 },
                                 onAssistsChange = { delta ->
-                                    playerRows[index] = player.copy(assists = (player.assists + delta).coerceAtLeast(0))
+                                    val updated = (player.assists + delta).coerceAtLeast(0)
+                                    playerRows[index] = player.copy(assists = updated)
                                 }
                             )
                         }
@@ -240,7 +289,9 @@ fun StatsInputScreen(
                         }
 
                         Button(
-                            onClick = { onSave(playerRows.toList()) },
+                            onClick = {
+                                onSave(playerRows.toList(), homeScore, awayScore)
+                            },
                             modifier = Modifier
                                 .weight(1f)
                                 .height(48.dp),
@@ -265,8 +316,14 @@ fun StatsInputScreen(
     }
 }
 
+
 @Composable
-private fun ScoreField(label: String, score: Int, modifier: Modifier = Modifier) {
+private fun ScoreField(
+    label: String,
+    score: Int,
+    onScoreChange: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -277,20 +334,68 @@ private fun ScoreField(label: String, score: Int, modifier: Modifier = Modifier)
             fontSize = 10.sp,
             color = FormUpColors.TextSecondary
         )
+
         Spacer(Modifier.height(6.dp))
-        Surface(
-            shape = RoundedCornerShape(10.dp),
-            color = FormUpColors.Surface,
-            border = BorderStroke(1.dp, FormUpColors.Hairline)
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
         ) {
-            Text(
-                text = score.toString(),
-                fontFamily = Mono,
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp,
-                color = FormUpColors.TextPrimary,
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 10.dp)
-            )
+            IconButton(
+                onClick = {
+                    onScoreChange((score - 1).coerceAtLeast(0))
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Remove,
+                    contentDescription = "Decrease $label score",
+                    tint = FormUpColors.Primary
+                )
+            }
+
+            Surface(
+                shape = RoundedCornerShape(10.dp),
+                color = FormUpColors.Surface,
+                border = BorderStroke(1.dp, FormUpColors.Hairline)
+            ) {
+                androidx.compose.foundation.text.BasicTextField(
+                    value = score.toString(),
+                    onValueChange = { input ->
+                        val parsed = input.toIntOrNull()
+                        if (parsed != null && parsed >= 0 && parsed <= 99) {
+                            onScoreChange(parsed)
+                        } else if (input.isEmpty()) {
+                            onScoreChange(0)
+                        }
+                    },
+                    singleLine = true,
+                    textStyle = androidx.compose.ui.text.TextStyle(
+                        fontFamily = Mono,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        color = FormUpColors.TextPrimary,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    ),
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                        keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
+                    ),
+                    modifier = Modifier
+                        .width(48.dp)
+                        .padding(vertical = 10.dp)
+                )
+            }
+
+            IconButton(
+                onClick = {
+                    onScoreChange((score + 1).coerceAtMost(99))
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = "Increase $label score",
+                    tint = FormUpColors.Primary
+                )
+            }
         }
     }
 }

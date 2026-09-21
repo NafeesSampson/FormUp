@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.formup.app-mergeDebugResources-44:/values-da/values-da.xml",
+            "outputFile": "com.formup.app-mergeDebugResources-45:/values-da/values-da.xml",
             "map": [
                 {
                     "source": "C:\\Users\\nafee\\.gradle\\caches\\transforms-4\\0e12637407c5f4960f45542b38d7c0b2\\transformed\\core-1.13.1\\res\\values-da\\values-da.xml",
