@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">FormUp</string>
+    <string name="default_web_client_id" translatable="false">957998559498-unad45kp5rrjrbu123usmf9fsvnkvgm4.apps.googleusercontent.com</string>
 </resources>

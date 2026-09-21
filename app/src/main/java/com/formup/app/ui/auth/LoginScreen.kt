@@ -104,9 +104,9 @@ fun LoginScreen(
                     Text("Sign in to your account", style = MaterialTheme.typography.bodyMedium, color = FormUpColors.TextSecondary)
 
                     Spacer(Modifier.height(20.dp))
-                    RoleToggle(selected = role, onSelect = { role = it })
 
-                    Spacer(Modifier.height(18.dp))
+
+
                     Column(Modifier.fillMaxWidth()) {
                         Text("Email Address", style = MaterialTheme.typography.bodySmall, color = FormUpColors.TextPrimary, modifier = Modifier.padding(bottom = 6.dp))
                         AuthTextField(

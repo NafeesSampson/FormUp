@@ -33,6 +33,17 @@ import com.formup.app.ui.team.SampleTeamState
 import com.formup.app.ui.team.TeamScreen
 import com.formup.app.ui.theme.FormUpColors
 import com.formup.app.ui.theme.FormUpTheme
+import android.util.Log
+import android.widget.Toast
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import androidx.credentials.exceptions.GetCredentialCancellationException
+import com.formup.app.ui.auth.emailSignIn
+import com.formup.app.ui.auth.emailSignUp
+import com.formup.app.ui.auth.googleSignIn
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.launch
+import kotlin.coroutines.cancellation.CancellationException
 
 private enum class AppScreen {
     Login,
@@ -71,10 +82,28 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun FormUpApp() {
-    var screen by remember { mutableStateOf(AppScreen.Login) }
+    var screen by remember {
+        mutableStateOf(if (FirebaseAuth.getInstance().currentUser != null) AppScreen.Home else AppScreen.Login)
+    }
     var teamState by remember { mutableStateOf(SampleTeamState) }
     var calendarEvents by remember { mutableStateOf(SampleCalendarState.events) }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
+    fun attempt(block: suspend () -> Boolean) {
+        scope.launch {
+            try {
+                screen = if (block()) AppScreen.Home else AppScreen.CreateTeam
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: GetCredentialCancellationException) {
+                // user closed the Google picker, do nothing
+            } catch (e: Exception) {
+                Log.e("Auth", "Sign-in failed", e)
+                Toast.makeText(context, e.message ?: "Sign-in failed", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
     fun routeTab(tab: HomeTab): AppScreen = when (tab) {
         HomeTab.Home -> AppScreen.Home
         HomeTab.Calendar -> AppScreen.Calendar
@@ -85,18 +114,15 @@ private fun FormUpApp() {
 
     when (screen) {
         AppScreen.Login -> LoginScreen(
-            onSignIn = { _, _, _ -> screen = AppScreen.Home },
-            onGoogleSignIn = { screen = AppScreen.Home },
+            onSignIn = { email, password, _ -> attempt { emailSignIn(email, password) } },
+            onGoogleSignIn = { attempt { googleSignIn(context) } },
             onForgotPassword = { /* not built yet */ },
             onNavigateToSignUp = { screen = AppScreen.SignUp }
         )
 
         AppScreen.SignUp -> SignUpScreen(
-            onCreateAccount = { account ->
-                // Only the coach path is wired at this stage.
-                screen = if (account.role == AccountRole.COACH) AppScreen.CreateTeam else AppScreen.Home
-            },
-            onGoogleSignUp = { screen = AppScreen.CreateTeam },
+            onCreateAccount = { account -> attempt { emailSignUp(account.fullName, account.email, account.password) } },
+            onGoogleSignUp = { attempt { googleSignIn(context) } },
             onNavigateToLogin = { screen = AppScreen.Login }
         )
 

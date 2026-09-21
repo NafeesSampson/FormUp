@@ -131,10 +131,10 @@ fun SignUpScreen(
                         Text("Elevate your game. Sign up to get started.", style = MaterialTheme.typography.bodyMedium, color = FormUpColors.TextSecondary)
 
                         Spacer(Modifier.height(22.dp))
-                        AuthFieldLabel("I am joining as a")
-                        RoleToggle(selected = role, onSelect = { role = it })
 
-                        Spacer(Modifier.height(18.dp))
+
+
+
                         Column(Modifier.fillMaxWidth()) {
                             AuthFieldLabel("Full Name")
                             AuthTextField(
