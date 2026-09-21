@@ -20,6 +20,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -27,6 +32,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.formup.app.ui.FormUpViewModel
+import com.formup.app.ui.auth.AccountRole
+import com.formup.app.ui.auth.LoginScreen
+import com.formup.app.ui.auth.SignUpScreen
+import com.formup.app.ui.auth.NewAccount
+import com.google.firebase.auth.FirebaseAuth
 import com.formup.app.ui.home.HomeScreen
 import com.formup.app.ui.home.components.FormUpBottomBar
 import com.formup.app.ui.home.components.FormUpTopBar
@@ -64,6 +74,73 @@ class MainActivity : ComponentActivity() {
 private fun FormUpApp(viewModel: FormUpViewModel = viewModel()) {
     val context = LocalContext.current
     val clipboard = LocalClipboardManager.current
+    val auth = remember { FirebaseAuth.getInstance() }
+    var signedIn by remember { mutableStateOf(auth.currentUser != null) }
+    var showSignUp by remember { mutableStateOf(false) }
+
+    DisposableEffect(auth) {
+        val listener = FirebaseAuth.AuthStateListener { signedIn = it.currentUser != null }
+        auth.addAuthStateListener(listener)
+        onDispose { auth.removeAuthStateListener(listener) }
+    }
+
+    if (!signedIn) {
+        if (showSignUp) {
+            SignUpScreen(
+                onCreateAccount = { account: NewAccount ->
+                    if (account.role != AccountRole.COACH) {
+                        Toast.makeText(context, "FormUp is coach-only.", Toast.LENGTH_SHORT).show()
+                    } else {
+                        auth.createUserWithEmailAndPassword(account.email, account.password)
+                            .addOnSuccessListener { result ->
+                                val request = com.google.firebase.auth.UserProfileChangeRequest.Builder()
+                                    .setDisplayName(account.fullName)
+                                    .build()
+                                result.user?.updateProfile(request)?.addOnCompleteListener {
+                                    signedIn = true
+                                    viewModel.refreshFromApi()
+                                } ?: run {
+                                    signedIn = true
+                                    viewModel.refreshFromApi()
+                                }
+                            }
+                            .addOnFailureListener {
+                                Toast.makeText(context, it.message ?: "Could not create account", Toast.LENGTH_LONG).show()
+                            }
+                    }
+                },
+                onNavigateToLogin = { showSignUp = false },
+                onGoogleSignUp = {
+                    Toast.makeText(context, "Google sign-in is not wired yet.", Toast.LENGTH_SHORT).show()
+                }
+            )
+        } else {
+            LoginScreen(
+                onSignIn = { email, password, role ->
+                    if (role != AccountRole.COACH) {
+                        Toast.makeText(context, "FormUp is coach-only.", Toast.LENGTH_SHORT).show()
+                    } else {
+                        auth.signInWithEmailAndPassword(email, password)
+                            .addOnSuccessListener {
+                                signedIn = true
+                                viewModel.refreshFromApi()
+                            }
+                            .addOnFailureListener {
+                                Toast.makeText(context, it.message ?: "Sign in failed", Toast.LENGTH_LONG).show()
+                            }
+                    }
+                },
+                onForgotPassword = {
+                    Toast.makeText(context, "Enter your email first, then use password reset from Firebase.", Toast.LENGTH_LONG).show()
+                },
+                onGoogleSignIn = {
+                    Toast.makeText(context, "Google sign-in is not wired yet.", Toast.LENGTH_SHORT).show()
+                },
+                onNavigateToSignUp = { showSignUp = true }
+            )
+        }
+        return
+    }
 
     // One-shot feedback from the ViewModel.
     val message = viewModel.message
@@ -167,7 +244,7 @@ private fun FormUpApp(viewModel: FormUpViewModel = viewModel()) {
             onDownloadQr = { viewModel.notify("QR code saved to downloads") },
             onDone = { viewModel.back() },
             onNotifications = openNotifications,
-                    onSelectTab = selectTab
+            onSelectTab = selectTab
         )
 
         Destination.EditProfile -> EditProfileScreen(
@@ -215,7 +292,7 @@ private fun FormUpApp(viewModel: FormUpViewModel = viewModel()) {
             state = viewModel.matchReportState(screen.fixtureId),
             onBack = { viewModel.back() },
             onNotifications = openNotifications,
-                    onSelectTab = selectTab
+            onSelectTab = selectTab
         )
 
         Destination.Calendar, Destination.Team, is Destination.MatchDetails, is Destination.Attendance, is Destination.Lineup -> {

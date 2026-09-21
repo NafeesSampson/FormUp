@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.formup.app-mergeDebugResources-45:/values-v30/values-v30.xml",
+            "outputFile": "com.formup.app-mergeDebugResources-56:/values-v30/values-v30.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\nafee\\.gradle\\caches\\transforms-4\\b5e86cb40955669c3b0e1acbfe775ed3\\transformed\\material3-release\\res\\values-v30\\values-v30.xml",
+                    "source": "/Users/thomasnewman/.gradle/caches/transforms-4/b7623998bc0492c0f4a84bb15d1cf7bd/transformed/material3-release/res/values-v30/values-v30.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "4",

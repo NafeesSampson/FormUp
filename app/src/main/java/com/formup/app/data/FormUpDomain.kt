@@ -18,15 +18,14 @@ data class Player(
     val name: String,
     val position: String,
     val status: AvailabilityStatus = AvailabilityStatus.Fit,
-    val inLineup: Boolean = false,
-
-    val baseGoals: Int = 0,
-    val baseAssists: Int = 0,
-    val baseMatches: Int = 0,
-    val baseMinutes: Int = 0
+    val inLineup: Boolean = false
 )
 
-enum class MatchEventType { Goal, Card, Substitution }
+enum class MatchEventType {
+    Goal,
+    Card,
+    Substitution
+}
 
 data class MatchEvent(
     val minute: Int,
@@ -46,17 +45,21 @@ data class Fixture(
     val played: Boolean = false,
     val teamScore: Int = 0,
     val opponentScore: Int = 0,
-    val possession: Int = 55,
-    val passAccuracy: Int = 82,
-    val opponentPassAccuracy: Int = 76,
-    val shots: Int = 12,
-    val shotsOnTarget: Int = 6,
-    val opponentShots: Int = 8,
-    val opponentShotsOnTarget: Int = 3,
+
+    // These values are zero when the API does not supply them.
+    val possession: Int = 0,
+    val passAccuracy: Int = 0,
+    val opponentPassAccuracy: Int = 0,
+    val shots: Int = 0,
+    val shotsOnTarget: Int = 0,
+    val opponentShots: Int = 0,
+    val opponentShotsOnTarget: Int = 0,
+
     val playerStats: Map<String, MatchLine> = emptyMap(),
     val events: List<MatchEvent> = emptyList(),
     val tacticalNotes: List<String> = emptyList()
 ) {
+
     val resultLetter: String
         get() = when {
             !played -> "-"
@@ -65,12 +68,22 @@ data class Fixture(
             else -> "D"
         }
 
-    val scoreLine: String get() = "$teamScore-$opponentScore"
+    val scoreLine: String
+        get() = "$teamScore-$opponentScore"
 
-    val resultText: String get() = if (played) "$resultLetter $scoreLine" else kickoff
+    val resultText: String
+        get() =
+            if (played) {
+                "$resultLetter $scoreLine"
+            } else {
+                kickoff
+            }
 }
 
-enum class UpdateKind { Notice, Medical }
+enum class UpdateKind {
+    Notice,
+    Medical
+}
 
 data class TeamUpdateItem(
     val id: String,
@@ -88,7 +101,12 @@ data class ActivityEntry(
     val isTraining: Boolean
 )
 
-enum class NotificationKind { Attendance, Schedule, Fitness, Stats }
+enum class NotificationKind {
+    Attendance,
+    Schedule,
+    Fitness,
+    Stats
+}
 
 data class AppNotification(
     val id: String,

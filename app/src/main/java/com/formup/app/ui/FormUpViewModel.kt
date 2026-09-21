@@ -20,7 +20,13 @@ import com.formup.app.data.MatchEventType
 import com.formup.app.data.MatchLine
 import com.formup.app.data.NotificationKind
 import com.formup.app.data.Player
-import com.formup.app.data.SeedData
+import com.formup.app.data.FormUpApi
+import com.formup.app.data.ApiException
+import com.formup.app.data.SquadUpdate
+import com.formup.app.data.StatUpdate
+import com.google.firebase.auth.FirebaseAuth
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 import com.formup.app.data.TeamProfile
 import com.formup.app.data.TeamUpdateItem
 import com.formup.app.data.UpdateKind
@@ -71,16 +77,55 @@ class FormUpViewModel : ViewModel() {
 
     // ---------------------------------------------------------------- state
 
-    private val playerList = mutableStateListOf<Player>().apply { addAll(SeedData.players) }
-    private val fixtureList = mutableStateListOf<Fixture>().apply { addAll(SeedData.fixtures) }
-    private val notificationList = mutableStateListOf<AppNotification>().apply { addAll(SeedData.notifications) }
-    private val updateList = mutableStateListOf<TeamUpdateItem>().apply { addAll(SeedData.updates) }
-    private val activityList = mutableStateListOf<ActivityEntry>().apply { addAll(SeedData.activity) }
+    private val api = FormUpApi()
+    private val playerList = mutableStateListOf<Player>()
+    private val fixtureList = mutableStateListOf<Fixture>()
+    private val notificationList = mutableStateListOf<AppNotification>()
+    private val updateList = mutableStateListOf<TeamUpdateItem>()
+    private val activityList = mutableStateListOf<ActivityEntry>()
 
-    var coach by mutableStateOf(SeedData.coach)
+    var coach by mutableStateOf(CoachProfile("", "Coach", emptyList(), "en", false, false))
         private set
-    var team by mutableStateOf(SeedData.team)
+    var team by mutableStateOf(TeamProfile("", "", "", "", "", ""))
         private set
+
+    init {
+        refreshFromApi()
+    }
+
+    fun refreshFromApi() {
+        if (FirebaseAuth.getInstance().currentUser == null) return
+        viewModelScope.launch {
+            runCatching { api.loadSeason() }
+                .onSuccess { snapshot ->
+                    playerList.clear()
+                    playerList.addAll(snapshot.players)
+                    fixtureList.clear()
+                    fixtureList.addAll(snapshot.fixtures)
+                    coach = snapshot.coach
+                    team = snapshot.team
+                    rebuildDerivedActivity()
+                }
+                .onFailure { error ->
+                    notify(error.message ?: "Could not load data from FormUp API")
+                }
+        }
+    }
+
+    private fun rebuildDerivedActivity() {
+        activityList.clear()
+        fixtureList.filter { it.played }.sortedByDescending { it.dateLabel }.take(4).forEach { match ->
+            activityList.add(
+                ActivityEntry(
+                    id = "match-${match.id}",
+                    title = "Match vs. ${match.opponent}",
+                    subtitle = "${resultWord(match)} ${match.scoreLine}",
+                    date = match.dateLabel.uppercase(),
+                    isTraining = false
+                )
+            )
+        }
+    }
 
     private var _competitionFilter by mutableStateOf<String?>(null)
     val competitionFilter: String? get() = _competitionFilter
@@ -141,16 +186,16 @@ class FormUpViewModel : ViewModel() {
     private val playedFixtures: List<Fixture> get() = filteredFixtures.filter { it.played }
 
     fun goalsOf(player: Player): Int =
-        player.baseGoals + fixtureList.sumOf { it.playerStats[player.id]?.goals ?: 0 }
+        fixtureList.sumOf { it.playerStats[player.id]?.goals ?: 0 }
 
     fun assistsOf(player: Player): Int =
-        player.baseAssists + fixtureList.sumOf { it.playerStats[player.id]?.assists ?: 0 }
+        fixtureList.sumOf { it.playerStats[player.id]?.assists ?: 0 }
 
     fun matchesOf(player: Player): Int =
-        player.baseMatches + fixtureList.count { it.played && it.playerStats.containsKey(player.id) }
+        fixtureList.count { it.played && it.playerStats.containsKey(player.id) }
 
     fun minutesOf(player: Player): Int =
-        player.baseMinutes + fixtureList.sumOf { it.playerStats[player.id]?.minutes ?: 0 }
+        fixtureList.sumOf { it.playerStats[player.id]?.minutes ?: 0 }
 
     val lineupCount: Int get() = playerList.count { it.inLineup }
 
@@ -188,8 +233,28 @@ class FormUpViewModel : ViewModel() {
     }
 
     fun saveLineup() {
-        notify("Starting XI saved ($lineupCount/$MAX_LINEUP)")
-        back()
+        val match = nextFixture ?: run { notify("No upcoming fixture"); return }
+        viewModelScope.launch {
+            runCatching {
+                api.saveSquad(
+                    match.id,
+                    playerList.map {
+                        SquadUpdate(
+                            playerId = it.id,
+                            status = when (it.status) {
+                                AvailabilityStatus.Fit -> "Available"
+                                AvailabilityStatus.Doubtful -> "Doubtful"
+                                AvailabilityStatus.Out -> "Out"
+                            },
+                            selection = if (it.inLineup) "Starting" else "NotSelected"
+                        )
+                    }
+                )
+            }.onSuccess {
+                notify("Starting XI saved ($lineupCount/$MAX_LINEUP)")
+                back()
+            }.onFailure { notify(it.message ?: "Could not save squad") }
+        }
     }
 
     private fun updatePlayer(playerId: String, transform: (Player) -> Player) {
@@ -202,61 +267,43 @@ class FormUpViewModel : ViewModel() {
         if (index >= 0) fixtureList[index] = transform(fixtureList[index])
     }
 
-     fun saveMatchStats(
+    fun saveMatchStats(
         fixtureId: String,
         entries: List<PlayerStatEntry>,
         teamScore: Int,
         opponentScore: Int
     ) {
         val existing = fixture(fixtureId) ?: return
-        val lines = entries
-            .filter { it.goals > 0 || it.assists > 0 }
-            .associate { entry ->
-                entry.id to MatchLine(
-                    goals = entry.goals,
-                    assists = entry.assists,
-                    minutes = existing.playerStats[entry.id]?.minutes ?: 90
+        viewModelScope.launch {
+            runCatching {
+                api.updateMatchScores(fixtureId, teamScore.coerceAtLeast(0), opponentScore.coerceAtLeast(0))
+                api.saveStats(
+                    fixtureId,
+                    playerList.map { player ->
+                        val entry = entries.firstOrNull { it.id == player.id }
+                        val line = existing.playerStats[player.id]
+                        StatUpdate(
+                            playerId = player.id,
+                            goals = entry?.goals ?: line?.goals ?: 0,
+                            assists = entry?.assists ?: line?.assists ?: 0,
+                            cleansheet = opponentScore == 0,
+                            minutesPlayed = line?.minutes ?: 0,
+                            rating = 0.0
+                        )
+                    }
                 )
-            }
-
-
-         val events = buildEvents(lines)
-
-         updateFixture(fixtureId) {
-             it.copy(
-                 played = true,
-                 teamScore = teamScore.coerceAtLeast(0),
-                 opponentScore = opponentScore.coerceAtLeast(0),
-                 playerStats = lines,
-                 events = events
-             )
-         }
-
-        val saved = fixture(fixtureId) ?: return
-        activityList.add(
-            0,
-            ActivityEntry(
-                id = "a-${saved.id}-${System.currentTimeMillis()}",
-                title = "Match vs. ${saved.opponent}",
-                subtitle = "${resultWord(saved)} ${saved.scoreLine} · ${lines.values.sumOf { it.goals }} logged goals",
-                date = saved.dateLabel.uppercase(),
-                isTraining = false
-            )
-        )
-        notificationList.add(
-            0,
-            AppNotification(
-                id = "report-${saved.id}-${System.currentTimeMillis()}",
-                kind = NotificationKind.Stats,
-                title = "Match Report Ready",
-                timestamp = "Just now",
-                body = "Stats saved for ${saved.opponent}. Tap to open the full report.",
-                actionLabel = "View Report",
-                fixtureId = saved.id
-            )
-        )
-        notify("Statistics saved")
-        back()
+                val refreshed = api.loadSeason()
+                refreshed
+            }.onSuccess { snapshot ->
+                playerList.clear(); playerList.addAll(snapshot.players)
+                fixtureList.clear(); fixtureList.addAll(snapshot.fixtures)
+                coach = snapshot.coach
+                team = snapshot.team
+                rebuildDerivedActivity()
+                notify("Statistics saved")
+                back()
+            }.onFailure { notify(it.message ?: "Could not save statistics") }
+        }
     }
 
     private fun buildEvents(lines: Map<String, MatchLine>): List<MatchEvent> {
@@ -323,7 +370,11 @@ class FormUpViewModel : ViewModel() {
 
     fun setLanguage(option: LanguageOption) {
         coach = coach.copy(languageCode = option.code)
-        notify("Language set to ${option.nativeLabel}")
+        viewModelScope.launch {
+            runCatching { api.updateCoach(coach.name, option.code) }
+                .onSuccess { notify("Language set to ${option.nativeLabel}") }
+                .onFailure { notify(it.message ?: "Could not update language") }
+        }
     }
 
     fun setMatchReminders(enabled: Boolean) {
@@ -348,21 +399,30 @@ class FormUpViewModel : ViewModel() {
     }
 
     fun saveProfileEdits() {
-        notify("Profile updated")
-        back()
+        viewModelScope.launch {
+            runCatching {
+                api.updateCoach(coach.name)
+                val ageGroup = team.squad.filter { it.isDigit() }.toIntOrNull() ?: 0
+                api.updateTeam(team.name, ageGroup)
+            }.onSuccess {
+                notify("Profile updated")
+                back()
+            }.onFailure { notify(it.message ?: "Could not update profile") }
+        }
     }
 
     fun signOut() {
-        playerList.clear(); playerList.addAll(SeedData.players)
-        fixtureList.clear(); fixtureList.addAll(SeedData.fixtures)
-        notificationList.clear(); notificationList.addAll(SeedData.notifications)
-        updateList.clear(); updateList.addAll(SeedData.updates)
-        activityList.clear(); activityList.addAll(SeedData.activity)
-        coach = SeedData.coach
-        team = SeedData.team
+        FirebaseAuth.getInstance().signOut()
+        playerList.clear()
+        fixtureList.clear()
+        notificationList.clear()
+        updateList.clear()
+        activityList.clear()
+        coach = CoachProfile("", "Coach", emptyList(), "en", false, false)
+        team = TeamProfile("", "", "", "", "", "")
         _competitionFilter = null
         selectTab(HomeTab.Home)
-        notify("Signed out — demo data reset")
+        notify("Signed out")
     }
 
     // -------------------------------------------------------- derived state
@@ -376,8 +436,8 @@ class FormUpViewModel : ViewModel() {
             return HomeUiState(
                 coachName = "Coach ${coach.name.substringBefore(' ')}",
                 prompt = next
-                    ?.let { "Next up: ${it.opponent} on ${it.dateLabel}. Squad list looks ${availabilityMood()}." }
-                    ?: "No fixtures scheduled — add one from the calendar.",
+                    ?.let { "Next up: ${it.opponent} on ${it.dateLabel}. Squad availability: ${availabilityMood()}." }
+                    ?: "No fixtures scheduled.",
                 nextMatch = NextMatch(
                     opponent = next?.let { "vs. ${it.opponent}" } ?: "No upcoming match",
                     date = next?.dateLabel ?: "—",
@@ -584,7 +644,17 @@ class FormUpViewModel : ViewModel() {
         get() = notificationList.filter { !it.isRead }.map { it.id }.toSet()
 
     fun statsInputState(fixtureId: String): StatsInputUiState {
-        val match = fixture(fixtureId) ?: fixtureList.first()
+        val match = fixture(fixtureId) ?: fixtureList.firstOrNull() ?: return StatsInputUiState(
+            resultBadge = "NO MATCHES",
+            matchDate = "—",
+            opponent = "—",
+            competition = "—",
+            homeLabel = team.name.ifBlank { "TEAM" }.uppercase(),
+            awayLabel = "—",
+            homeScore = 0,
+            awayScore = 0,
+            players = emptyList()
+        )
         return StatsInputUiState(
             resultBadge = if (match.played) "FT ${match.scoreLine} (${match.resultLetter})" else "NOT PLAYED",
             matchDate = "${match.dateLabel}, ${team.season.take(4)}",
@@ -611,7 +681,17 @@ class FormUpViewModel : ViewModel() {
     }
 
     fun matchReportState(fixtureId: String): MatchReportUiState {
-        val match = fixture(fixtureId) ?: fixtureList.first()
+        val match = fixture(fixtureId) ?: fixtureList.firstOrNull() ?: return MatchReportUiState(
+            statusLine = "NO MATCHES",
+            awayTeam = TeamScoreInfo("—", "—", 0),
+            homeTeam = TeamScoreInfo(team.name.take(3).uppercase(), team.name.ifBlank { "Team" }, 0, true),
+            overview = "No match data is available yet.",
+            tacticalNotes = emptyList(),
+            timeline = emptyList(),
+            teamStats = emptyList(),
+            myPerformance = PerformanceSummary("—", "NO STATS", "0'", "0", "—", "—", "—"),
+            ratings = emptyList()
+        )
         val lines = match.playerStats
         val ratings = lines.entries
             .mapNotNull { (playerId, line) -> player(playerId)?.let { it to line } }
