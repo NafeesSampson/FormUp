@@ -56,12 +56,13 @@ import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.credentials.exceptions.GetCredentialCancellationException
-import com.formup.app.ui.auth.emailSignIn
-import com.formup.app.ui.auth.emailSignUp
-import com.formup.app.ui.auth.googleSignIn
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 import com.formup.app.ui.auth.CreateTeamScreen
+import emailSignIn
+import emailSignUp
+import googleSignIn
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

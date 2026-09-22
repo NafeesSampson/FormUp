@@ -36,7 +36,7 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
     suspend fun updateCoach(
         displayName: String,
         preferredLanguage: String? = null
-    ) {
+    ) = withContext(Dispatchers.IO) {
         val body = JSONObject()
             .put("displayName", displayName)
 
@@ -54,7 +54,7 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
     suspend fun updateTeam(
         teamName: String,
         ageGroup: Int
-    ) {
+    ) = withContext(Dispatchers.IO) {
         request(
             method = "PUT",
             path = "/api/team",
@@ -68,7 +68,7 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
         matchId: String,
         teamScore: Int,
         opponentScore: Int
-    ) {
+    ) = withContext(Dispatchers.IO) {
         request(
             method = "PATCH",
             path = "/api/match/$matchId",
@@ -81,7 +81,7 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
     suspend fun saveSquad(
         matchId: String,
         players: List<SquadUpdate>
-    ) {
+    ) = withContext(Dispatchers.IO) {
         val array = JSONArray()
 
         players.forEach {
@@ -103,7 +103,7 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
     suspend fun saveStats(
         matchId: String,
         stats: List<StatUpdate>
-    ) {
+    ) = withContext(Dispatchers.IO) {
         val array = JSONArray()
 
         stats.forEach {
@@ -129,7 +129,7 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
         name: String,
         position: String,
         dateOfBirth: String?
-    ) {
+    ) = withContext(Dispatchers.IO) {
         val body = JSONObject()
             .put("name", name)
             .put("position", position)
@@ -147,7 +147,7 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
         )
     }
 
-    suspend fun deletePlayer(id: String) {
+    suspend fun deletePlayer(id: String) = withContext(Dispatchers.IO){
         request(
             method = "DELETE",
             path = "/api/players/$id"
