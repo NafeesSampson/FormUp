@@ -2,7 +2,6 @@ package com.formup.app.ui.navigation
 
 import com.formup.app.ui.home.components.HomeTab
 
-/** Every screen the app can show. Tab destinations are the roots of the back stack. */
 sealed interface Destination {
     object Home : Destination
     object Calendar : Destination
@@ -13,6 +12,7 @@ sealed interface Destination {
     object Notifications : Destination
     object InvitePlayer : Destination
     object EditProfile : Destination
+    object AddPlayer : Destination
 
     data class MatchDetails(val fixtureId: String) : Destination
     data class Attendance(val fixtureId: String) : Destination
@@ -21,13 +21,22 @@ sealed interface Destination {
     data class MatchReport(val fixtureId: String) : Destination
 }
 
-/** Which bottom-bar tab should be highlighted while this destination is on screen. */
+
 val Destination.tab: HomeTab
     get() = when (this) {
         Destination.Calendar -> HomeTab.Calendar
-        Destination.Team, Destination.InvitePlayer -> HomeTab.Team
-        Destination.Stats, is Destination.StatsInput, is Destination.MatchReport -> HomeTab.Stats
-        Destination.Profile, Destination.EditProfile -> HomeTab.Profile
+
+        Destination.Team,
+        Destination.InvitePlayer,
+        Destination.AddPlayer -> HomeTab.Team
+
+        Destination.Stats,
+        is Destination.StatsInput,
+        is Destination.MatchReport -> HomeTab.Stats
+
+        Destination.Profile,
+        Destination.EditProfile -> HomeTab.Profile
+
         else -> HomeTab.Home
     }
 

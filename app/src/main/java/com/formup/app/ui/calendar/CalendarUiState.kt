@@ -37,36 +37,9 @@ data class CalendarUiState(
     val events: List<CalendarEvent>
 )
 
-/**
- * Static placeholder content. The day grid below is not generated from
- * [events] — its marker dots stay fixed until whoever wires real month/date
- * logic connects the two.
- */
 val SampleCalendarState = CalendarUiState(
-    monthLabel = "October 2026",
-    days = listOf(
-        CalendarDay(22, "S", isInCurrentMonth = false),
-        CalendarDay(23, "M", marker = DayMarker.MATCH),
-        CalendarDay(24, "T"),
-        CalendarDay(25, "W", marker = DayMarker.TRAINING),
-        CalendarDay(26, "T"),
-        CalendarDay(27, "F", marker = DayMarker.MATCH),
-        CalendarDay(28, "S", marker = DayMarker.ACTION)
-    ),
-    selectedDate = 28,
-    events = listOf(
-        CalendarEvent.Match(
-            id = "match-metro-city",
-            opponent = "Metro City FC",
-            dateLabel = "Saturday, Oct 28",
-            timeText = "14:00 Kickoff (Arrive 13:00)",
-            location = "Riverside Stadium"
-        ),
-        CalendarEvent.Training(
-            id = "training-first-team",
-            title = "First Team Training",
-            timeRange = "18:00 - 19:30",
-            location = "Training Pitch 2"
-        )
-    )
+    monthLabel = "",
+    days = emptyList(),
+    selectedDate = 1,
+    events = emptyList()
 )

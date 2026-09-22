@@ -71,6 +71,23 @@ import androidx.compose.material.icons.filled.Handshake
 import androidx.compose.material.icons.filled.SportsScore
 import androidx.compose.material.icons.filled.Timer
 import kotlin.math.roundToInt
+import com.formup.app.ui.calendar.AttendanceUiState
+import com.formup.app.ui.calendar.CalendarDay
+import com.formup.app.ui.calendar.CalendarEvent
+import com.formup.app.ui.calendar.CalendarUiState
+import com.formup.app.ui.calendar.DayMarker
+import com.formup.app.ui.calendar.LineupPlayer
+import com.formup.app.ui.calendar.MatchDetailsUiState
+import com.formup.app.ui.calendar.RosterEntry
+import com.formup.app.ui.calendar.RosterRowAction
+import com.formup.app.ui.calendar.RosterStatus
+import com.formup.app.ui.calendar.SubPlayer
+import com.formup.app.ui.team.PlayerStatus
+import com.formup.app.ui.team.SquadPlayer
+import com.formup.app.ui.team.TeamUiState
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 
 class FormUpViewModel : ViewModel() {
@@ -198,6 +215,156 @@ class FormUpViewModel : ViewModel() {
         fixtureList.sumOf { it.playerStats[player.id]?.minutes ?: 0 }
 
     val lineupCount: Int get() = playerList.count { it.inLineup }
+
+
+    private var calendarOffset by mutableStateOf(0)
+
+    fun previousCalendarMonth() { calendarOffset-- }
+    fun nextCalendarMonth() { calendarOffset++ }
+
+    val teamState: TeamUiState
+        get() = TeamUiState(
+            players = playerList.map { player ->
+                SquadPlayer(
+                    id = player.id,
+                    fullName = player.name,
+                    position = player.position,
+                    status = when (player.status) {
+                        AvailabilityStatus.Fit -> PlayerStatus.FIT
+                        AvailabilityStatus.Doubtful -> PlayerStatus.DOUBT
+                        AvailabilityStatus.Out -> PlayerStatus.OUT
+                    }
+                )
+            }
+        )
+
+    val calendarState: CalendarUiState
+        get() {
+            val shown = Calendar.getInstance().apply { add(Calendar.MONTH, calendarOffset) }
+            val month = shown.get(Calendar.MONTH)
+            val year = shown.get(Calendar.YEAR)
+            val monthLabel = SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(shown.time)
+            shown.set(Calendar.DAY_OF_MONTH, 1)
+            val leading = shown.get(Calendar.DAY_OF_WEEK) - Calendar.SUNDAY
+            val count = shown.getActualMaximum(Calendar.DAY_OF_MONTH)
+            val days = buildList {
+                repeat(leading) { add(CalendarDay(0, "", false, null)) }
+                for (day in 1..count) {
+                    val hasMatch = fixtureList.any { fixtureDateParts(it.dateLabel)?.let { p -> p.first == day && p.second == month } == true }
+                    add(CalendarDay(day, "", true, if (hasMatch) DayMarker.MATCH else null))
+                }
+            }
+            val events = fixtureList.map { fixture ->
+                CalendarEvent.Match(
+                    id = fixture.id,
+                    opponent = fixture.opponent,
+                    dateLabel = fixture.dateLabel,
+                    timeText = fixture.kickoff,
+                    location = fixture.venue.ifBlank { "Venue not set" },
+                    formation = if (playerList.count { it.inLineup } == 11) "Starting XI selected" else null
+                )
+            }
+            return CalendarUiState(
+                monthLabel = monthLabel,
+                days = days,
+                selectedDate = if (calendarOffset == 0) Calendar.getInstance().get(Calendar.DAY_OF_MONTH) else 1,
+                events = events
+            )
+        }
+
+    private fun fixtureDateParts(label: String): Pair<Int, Int>? {
+        val parsed = listOf("MMM dd", "MMM d").firstNotNullOfOrNull { pattern ->
+            runCatching { SimpleDateFormat(pattern, Locale.US).apply { isLenient = false }.parse(label) }.getOrNull()
+        } ?: return null
+        return Calendar.getInstance().apply { time = parsed }.let { it.get(Calendar.DAY_OF_MONTH) to it.get(Calendar.MONTH) }
+    }
+
+    fun addPlayer(player: SquadPlayer) {
+        viewModelScope.launch {
+            runCatching {
+                api.createPlayer(player.fullName, player.position, null)
+                api.loadSeason()
+            }.onSuccess { snapshot ->
+                playerList.clear(); playerList.addAll(snapshot.players)
+                fixtureList.clear(); fixtureList.addAll(snapshot.fixtures)
+                coach = snapshot.coach
+                team = snapshot.team
+                rebuildDerivedActivity()
+                notify("${player.fullName} added to the roster")
+                back()
+            }.onFailure { notify(it.message ?: "Could not add player") }
+        }
+    }
+
+    fun attendanceState(fixtureId: String): AttendanceUiState {
+        val match = fixture(fixtureId)
+        val roster = playerList.map { player ->
+            val status = when (player.status) {
+                AvailabilityStatus.Fit -> RosterStatus.ATTENDING
+                AvailabilityStatus.Doubtful -> RosterStatus.NO_REPLY
+                AvailabilityStatus.Out -> RosterStatus.ABSENT
+            }
+            RosterEntry(
+                id = player.id,
+                name = player.name,
+                subtitle = player.position,
+                statusBadge = if (player.status == AvailabilityStatus.Out) "OUT" else null,
+                status = status,
+                action = if (status == RosterStatus.NO_REPLY) RosterRowAction.MARK_PRESENT else RosterRowAction.NONE
+            )
+        }
+        return AttendanceUiState(
+            dateTimeLabel = listOfNotNull(match?.dateLabel, match?.kickoff, match?.venue).filter { it.isNotBlank() }.joinToString(" · ").uppercase(),
+            eventTitle = match?.let { "Match vs. ${it.opponent}" } ?: "Match attendance",
+            squadSize = roster.size,
+            attending = roster.count { it.status == RosterStatus.ATTENDING },
+            absentCount = roster.count { it.status == RosterStatus.ABSENT },
+            noReplyCount = roster.count { it.status == RosterStatus.NO_REPLY },
+            roster = roster
+        )
+    }
+
+    fun markAttendancePresent(playerId: String) {
+        setAvailability(playerId, AvailabilityStatus.Fit)
+    }
+
+    fun markAllAttendancePresent() {
+        playerList.indices.forEach { i ->
+            if (playerList[i].status == AvailabilityStatus.Doubtful) playerList[i] = playerList[i].copy(status = AvailabilityStatus.Fit)
+        }
+        notify("All no-replies marked attending")
+    }
+
+    fun matchDetailsState(fixtureId: String): MatchDetailsUiState {
+        val match = fixture(fixtureId) ?: return MatchDetailsUiState(
+            competitionTag = "Match", title = "Match", dateLabel = "—", timeLabel = "—", venueName = "—", venueDetail = "",
+            inCount = 0, outCount = 0, tbdCount = 0, squadSize = 0, formation = "No lineup selected", startingXi = emptyList(), substitutes = emptyList()
+        )
+        val starters = playerList.filter { it.inLineup }.take(11)
+        val subs = playerList.filter { !it.inLineup }.take(7)
+        val spots = listOf(
+            .50f to .90f, .15f to .70f, .38f to .70f, .62f to .70f, .85f to .70f,
+            .25f to .45f, .50f to .42f, .75f to .45f, .20f to .16f, .50f to .12f, .80f to .16f
+        )
+        return MatchDetailsUiState(
+            competitionTag = match.competition.ifBlank { "Match" },
+            title = "Match vs. ${match.opponent}",
+            dateLabel = match.dateLabel,
+            timeLabel = match.kickoff,
+            venueName = match.venue.ifBlank { "Venue not set" },
+            venueDetail = "",
+            inCount = playerList.count { it.status == AvailabilityStatus.Fit },
+            outCount = playerList.count { it.status == AvailabilityStatus.Out },
+            tbdCount = playerList.count { it.status == AvailabilityStatus.Doubtful },
+            squadSize = playerList.size,
+            formation = if (starters.size == 11) "Starting XI" else "${starters.size}/11 selected",
+            startingXi = starters.mapIndexed { index, player ->
+                val spot = spots[index]
+                LineupPlayer(if (player.number > 0) player.number else index + 1, player.name, spot.first, spot.second, index == 0)
+            },
+            substitutes = subs.mapIndexed { index, player -> SubPlayer(if (player.number > 0) player.number else index + 12, player.name, player.position) }
+        )
+    }
 
     // -------------------------------------------------------------- actions
 

@@ -174,8 +174,13 @@ private fun MonthGrid(
     selectedDate: Int,
     onSelectDate: (Int) -> Unit
 ) {
-    SectionCard(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(12.dp)) {
-        Row(Modifier.fillMaxWidth()) {
+    SectionCard(
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(12.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth()
+        ) {
             weekdayLetters.forEach { letter ->
                 Text(
                     text = letter,
@@ -187,10 +192,39 @@ private fun MonthGrid(
                 )
             }
         }
+
         Spacer(Modifier.height(8.dp))
-        Row(Modifier.fillMaxWidth()) {
-            days.forEach { day ->
-                DayCell(day = day, isSelected = day.date == selectedDate, onClick = { onSelectDate(day.date) }, modifier = Modifier.weight(1f))
+
+        days.chunked(7).forEach { week ->
+
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                week.forEach { day ->
+
+                    DayCell(
+                        day = day,
+                        isSelected =
+                            day.isInCurrentMonth &&
+                                    day.date == selectedDate,
+
+                        onClick = {
+                            if (day.isInCurrentMonth) {
+                                onSelectDate(day.date)
+                            }
+                        },
+
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                repeat(7 - week.size) {
+                    Spacer(
+                        modifier = Modifier
+                            .weight(1f)
+                            .aspectRatio(0.85f)
+                    )
+                }
             }
         }
     }
