@@ -1,0 +1,27 @@
+# Android Studio / Gradle files
+.gradle/
+/build/
+/captures/
+/.externalNativeBuild/
+/.cxx/
+
+# Local configuration files (contains local paths, SDK paths)
+local.properties
+
+# Android Studio project configuration
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+
+# Compiled class files
+*.class
+
+# Log files
+*.log
+
+# Android device backup / APKs
+*.apk
+*.aab
