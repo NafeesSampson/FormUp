@@ -11,8 +11,8 @@ enum class RosterRowAction { NUDGE, MARK_PRESENT, NONE }
 data class RosterEntry(
     val id: String,
     val name: String,
-    val subtitle: String,          // position, e.g. "Forward"
-    val statusBadge: String? = null, // e.g. "INJURED" — shown instead of subtitle when present
+    val subtitle: String,
+    val statusBadge: String? = null,
     val status: RosterStatus,
     val action: RosterRowAction = RosterRowAction.NONE
 )

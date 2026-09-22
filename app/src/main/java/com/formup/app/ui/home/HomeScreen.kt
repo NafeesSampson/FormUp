@@ -43,7 +43,9 @@ import com.formup.app.ui.theme.FormUpColors
 import com.formup.app.ui.theme.FormUpTheme
 import com.formup.app.ui.theme.Mono
 
+//ui components for home screen, data classes from homeuistate is passed here with api calls to get the required information
 @Composable
+// Main Dashboard screen for coaches displaying upcoming match info, quick actions, squad availability, last match summary, and activity updates
 fun HomeScreen(
     state: HomeUiState = SampleHomeState,
     onNotifications: () -> Unit = {},
@@ -164,7 +166,7 @@ fun HomeScreen(
         )
     }
 }
-
+// Personalized header text displaying coach name
 @Composable
 private fun Greeting(name: String, prompt: String) {
     androidx.compose.foundation.layout.Column {
@@ -182,6 +184,7 @@ private fun Greeting(name: String, prompt: String) {
     }
 }
 
+//POE only. Could not get this to work
 @Composable
 private fun InvitePlayerButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     Button(

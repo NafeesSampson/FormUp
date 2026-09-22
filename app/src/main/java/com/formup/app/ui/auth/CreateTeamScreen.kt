@@ -57,6 +57,8 @@ import com.formup.app.ui.theme.FormUpColors
 import com.formup.app.ui.theme.FormUpTheme
 import com.formup.app.ui.theme.Mono
 
+
+//All of this jetpack compose ui components
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateTeamScreen(

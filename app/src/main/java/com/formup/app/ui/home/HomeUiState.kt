@@ -5,6 +5,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.HealthAndSafety
 
+
+//data classes that are passed to the api
 data class NextMatch(
     val opponent: String,
     val date: String,
@@ -54,7 +56,7 @@ data class HomeUiState(
     val unreadNotifications: Boolean
 )
 
-
+//dummy info for testing
 val SampleHomeState = HomeUiState(
     coachName = "Coach Thomas",
     prompt = "Ready for the big match this weekend?",
