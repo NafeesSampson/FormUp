@@ -1,8 +1,6 @@
 package com.formup.app.ui.calendar
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import java.util.TimeZone
