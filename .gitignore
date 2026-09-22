@@ -6,7 +6,7 @@ app/build/
 /.externalNativeBuild/
 /.cxx/
 
-# Local configuration files
+# Local configuration files (contains local paths, SDK paths)
 local.properties
 
 # Android Studio project configuration
