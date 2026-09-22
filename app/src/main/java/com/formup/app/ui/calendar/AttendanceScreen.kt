@@ -54,17 +54,17 @@ import com.formup.app.ui.theme.FormUpColors
 import com.formup.app.ui.theme.FormUpTheme
 import com.formup.app.ui.theme.Mono
 
+// Main screen for viewing and managing session and match attendance
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AttendanceScreen(
-    state: AttendanceUiState = SampleAttendanceState,
-    onBack: () -> Unit = {},
-    onEditEvent: () -> Unit = {},
-    onNudgeAllNoReplies: () -> Unit = {},
-    onRowAction: (RosterEntry) -> Unit = {},
+    state: AttendanceUiState = SampleAttendanceState, // UI state containing event and register details
+    onBack: () -> Unit = {},                        // Callback when back button is pressed
+    onEditEvent: () -> Unit = {},                // Callback to edit the event details
+    onNudgeAllNoReplies: () -> Unit = {},          // Callback to send notifications to all unconfirmed players
+    onRowAction: (RosterEntry) -> Unit = {},     // Callback when an action is performed on an individual player
     modifier: Modifier = Modifier
-) {
-    var nudgedIds by remember { mutableStateOf(setOf<String>()) }
+) {    var nudgedIds by remember { mutableStateOf(setOf<String>()) } //tracks the player ids who still need to be marked as available or attended
     var markedPresentIds by remember { mutableStateOf(setOf<String>()) }
 
     Scaffold(

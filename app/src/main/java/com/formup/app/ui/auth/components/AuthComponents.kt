@@ -40,10 +40,8 @@ import com.formup.app.ui.auth.AccountRole
 import com.formup.app.ui.theme.FormUpColors
 import com.formup.app.ui.theme.Mono
 
-/**
- * Segmented Coach/Player toggle used on both Login and Sign Up.
- * Only Coach is wired to anything at this stage — Player is visible but inert.
- */
+
+//these are just jetcompose components
 @Composable
 fun RoleToggle(
     selected: AccountRole,
@@ -89,7 +87,7 @@ private fun RoleOption(
     }
 }
 
-/** Uppercase mono field label, matching the Sign Up mockup's "FULL NAME" style. */
+
 @Composable
 fun AuthFieldLabel(text: String) {
     Text(
@@ -156,7 +154,7 @@ fun AuthTextField(
     }
 }
 
-/** "or continue with" style divider used above the Google button. */
+
 @Composable
 fun OrDivider(label: String) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
@@ -173,11 +171,7 @@ fun OrDivider(label: String) {
     }
 }
 
-/**
- * Google button. No Google logo asset is bundled, so this uses a plain
- * letterform stand-in rather than the real multicolor "G" mark — swap in
- * the actual brand asset if/when one is added to the project.
- */
+
 @Composable
 fun GoogleAuthButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Surface(

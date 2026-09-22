@@ -1,0 +1,54 @@
+name: Android CI & Automated Testing
+#reference for the following: https://github.com/marketplace/actions/automated-build-android-app-with-github-action
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the repository source code
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up JDK (Java 17 is standard for AGP 8.x+)
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      # Step 3: Ensure Gradle wrapper executable permissions
+      - name: Grant Execute Permission for Gradlew
+        run: chmod +x gradlew
+
+      # Step 4: Run unit tests outside local environment
+      - name: Run Unit Tests
+        run: ./gradlew testDebugUnitTest
+
+      # Step 5: Automated Build using GitHub Action Marketplace tool
+      - name: Automated Build Android App (APK)
+        uses: amirisback/automated-build-android-app-with-github-action@v2.2.7
+        env:
+          main_project_module: app
+
+      # Step 6: Upload Unit Test Results (Artifact)
+      - name: Upload Test Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results
+          path: app/build/reports/tests/testDebugUnitTest/
+
+      # Step 7: Upload Generated Debug APK (Artifact)
+      - name: Upload Debug APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: app/build/outputs/apk/debug/app-debug.apk

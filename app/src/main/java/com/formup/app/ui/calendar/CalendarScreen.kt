@@ -57,6 +57,7 @@ import com.formup.app.ui.theme.FormUpColors
 import com.formup.app.ui.theme.FormUpTheme
 import com.formup.app.ui.theme.Mono
 
+//jetcompose ui for calender screen to show calender, and scheduled matches and sessions
 @Composable
 fun CalendarScreen(
     state: CalendarUiState = SampleCalendarState,

@@ -62,7 +62,7 @@ import com.formup.app.ui.theme.FormUpTheme
 import com.formup.app.ui.theme.Mono
 import androidx.compose.material3.ExperimentalMaterial3Api
 
-
+// Form for logging match scores and individual player statistics
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StatsInputScreen(
@@ -93,11 +93,11 @@ fun StatsInputScreen(
 
     val playerGoalTotal = playerRows.sumOf { it.goals }
 
-
     var lastGoalTotal by remember {
         androidx.compose.runtime.mutableIntStateOf(playerGoalTotal)
     }
 
+    // Auto-sync home score whenever individual player goals are modified
     fun updateGoals(index: Int, delta: Int) {
         val oldGoals = playerRows[index].goals
         val newGoals = (oldGoals + delta).coerceAtLeast(0)
@@ -153,6 +153,7 @@ fun StatsInputScreen(
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                // Match selection dropdown
                 item {
                     ExposedDropdownMenuBox(
                         expanded = pickerExpanded,
@@ -210,6 +211,7 @@ fun StatsInputScreen(
                     }
                 }
 
+                // Final score inputs (home vs. away)
                 item {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -259,6 +261,7 @@ fun StatsInputScreen(
                     }
                 }
 
+                // Interactive player stats table
                 item {
                     SectionCard(
                         modifier = Modifier.fillMaxWidth(),
@@ -283,7 +286,7 @@ fun StatsInputScreen(
                                 fontSize = 11.sp,
                                 color = FormUpColors.TextSecondary,
                                 modifier = Modifier.width(64.dp),
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                textAlign = TextAlign.Center
                             )
                             Text(
                                 text = "Assists",
@@ -291,7 +294,7 @@ fun StatsInputScreen(
                                 fontSize = 11.sp,
                                 color = FormUpColors.TextSecondary,
                                 modifier = Modifier.width(64.dp),
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                textAlign = TextAlign.Center
                             )
                             Text("Min", fontFamily = Mono, fontSize = 11.sp, color = FormUpColors.TextSecondary,
                                 modifier = Modifier.width(56.dp), textAlign = TextAlign.Center)
@@ -318,6 +321,7 @@ fun StatsInputScreen(
                     }
                 }
 
+                // Save or cancel actions
                 item {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -363,7 +367,7 @@ fun StatsInputScreen(
     }
 }
 
-
+// Score counter control with increment and decrement buttons
 @Composable
 private fun ScoreField(
     label: String,
@@ -421,7 +425,7 @@ private fun ScoreField(
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
                         color = FormUpColors.TextPrimary,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        textAlign = TextAlign.Center
                     ),
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
                         keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
@@ -447,6 +451,7 @@ private fun ScoreField(
     }
 }
 
+// Single player row in the stats table containing steppers for each stat column
 @Composable
 private fun PlayerStatRow(
     player: PlayerStatEntry,
@@ -499,10 +504,10 @@ private fun PlayerStatRow(
         Stepper(value = player.assists, onChange = onAssistsChange, modifier = Modifier.width(64.dp))
         Stepper(value = player.minutesPlayed, onChange = onMinutesChange, step = 5, modifier = Modifier.width(56.dp))
         RatingStepper(value = player.rating, onChange = onRatingChange, modifier = Modifier.width(56.dp))
-
     }
 }
 
+// Reusable integer stepper (+ / -)
 @Composable
 private fun Stepper(value: Int, onChange: (Int) -> Unit, step: Int = 1, modifier: Modifier = Modifier) {
     Row(
@@ -518,7 +523,7 @@ private fun Stepper(value: Int, onChange: (Int) -> Unit, step: Int = 1, modifier
             fontSize = 14.sp,
             color = FormUpColors.TextPrimary,
             modifier = Modifier.width(22.dp),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            textAlign = TextAlign.Center
         )
         StepperButton(icon = Icons.Filled.Add, onClick = { onChange(step) })
     }
@@ -543,6 +548,7 @@ private fun StepperButton(icon: androidx.compose.ui.graphics.vector.ImageVector,
     }
 }
 
+// Decimal rating stepper (increments by 0.5)
 @Composable
 private fun RatingStepper(value: Double, onChange: (Double) -> Unit, modifier: Modifier = Modifier) {
     Row(modifier = modifier, horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
@@ -550,7 +556,7 @@ private fun RatingStepper(value: Double, onChange: (Double) -> Unit, modifier: M
         Text(String.format(java.util.Locale.getDefault(), "%.1f", value),
             fontFamily = Mono, fontWeight = FontWeight.Bold, fontSize = 12.sp,
             color = FormUpColors.TextPrimary, modifier = Modifier.width(28.dp),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+            textAlign = TextAlign.Center)
         StepperButton(icon = Icons.Filled.Add, onClick = { onChange(0.5) })
     }
 }

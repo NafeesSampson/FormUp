@@ -13,13 +13,16 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
+//this class is used to handle all communications between the android app and the backend asp.net web api
 class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
 
+    //setting the api link as base_url and the timeout value in millieseconds
     companion object {
         const val BASE_URL = "http://prog7314.runasp.net"
         private const val TIMEOUT_MS = 15_000
     }
 
+    //loading all general appp data such as teams, season info and coach within a single call
     suspend fun loadSeason(): SeasonSnapshot = withContext(Dispatchers.IO) {
         val coach = getObject("/api/coach")
         val team = getObject("/api/team")
@@ -33,6 +36,7 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
         )
     }
 
+    //updates the coach profile in the settings such as their display name and their preferred language(POE)
     suspend fun updateCoach(
         displayName: String,
         preferredLanguage: String? = null
@@ -51,6 +55,7 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
         )
     }
 
+    //Changes the coaches managed team info from settings page
     suspend fun updateTeam(
         teamName: String,
         ageGroup: Int
@@ -64,6 +69,7 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
         )
     }
 
+    //updates final score of a specific match
     suspend fun updateMatchScores(
         matchId: String,
         teamScore: Int,
@@ -78,6 +84,7 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
         )
     }
 
+    //gets all players for a specific match
     suspend fun getSquad(
         matchId: String
     ): List<SquadUpdate> = withContext(Dispatchers.IO) {
@@ -104,6 +111,7 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
         }
     }
 
+    //saves the squad selection choices for the match
     suspend fun saveSquad(
         matchId: String,
         players: List<SquadUpdate>
@@ -126,6 +134,7 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
         )
     }
 
+    //fetches the attendance records for a match(POE)
     suspend fun getAttendance(
         matchId: String
     ): List<AttendanceRecord> = withContext(Dispatchers.IO) {
@@ -151,6 +160,7 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
         }
     }
 
+    //saving the match attendance to the match
     suspend fun saveAttendance(
         matchId: String,
         attendance: List<AttendanceRecord>
@@ -172,6 +182,7 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
         )
     }
 
+    //fetches the player attendance records for a training session(POE)
     suspend fun getSessionAttendance(
         sessionId: String
     ): List<AttendanceRecord> = withContext(Dispatchers.IO) {
@@ -197,6 +208,7 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
         }
     }
 
+    //saves training attendance
     suspend fun saveSessionAttendance(
         sessionId: String,
         attendance: List<AttendanceRecord>
@@ -219,6 +231,7 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
         )
     }
 
+    //saves the match stats for each individual player
     suspend fun saveStats(
         matchId: String,
         stats: List<StatUpdate>
@@ -244,6 +257,7 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
         )
     }
 
+    //creates a new player for a specific team
     suspend fun createPlayer(
         name: String,
         position: String,
@@ -273,10 +287,11 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
         )
     }
 
+    //creating a match for a specific team and scheduling it
     suspend fun createMatch(
         opponent: String,
         matchDateIso: String,
-        venue: String            // must be exactly "Home" or "Away"
+        venue: String            // must be exactly "Home" or "Away" to match api
     ): String = withContext(Dispatchers.IO) {
         val response = request(
             method = "POST",
@@ -289,6 +304,7 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
         JSONObject(response).optString("id")
     }
 
+    //creating a training session for specific team, just session date and notes gets saved to api
     suspend fun createSession(
         sessionDateIso: String,
         notes: String?
@@ -299,6 +315,7 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
         JSONObject(response).optString("id")
     }
 
+    // is a helper function to send a GET request and parse the response as a JSON Object
     private fun getObject(path: String): JSONObject {
         return JSONObject(
             request(
@@ -308,12 +325,14 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
         )
     }
 
+    //this function is used to perform the actual http requests to the api
     private fun request(
         method: String,
         path: String,
         body: Any? = null
     ): String {
 
+        //opens the http connection to each api endpoint
         val connection =
             (URL(BASE_URL + path).openConnection() as HttpURLConnection).apply {
                 requestMethod = method
@@ -327,6 +346,7 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
                 )
             }
 
+        //attaches the firebase authentication token (jwt) to prove a user is logged in
         if (path != "/health") {
             val user = auth.currentUser
                 ?: throw ApiException(
@@ -348,6 +368,7 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
             )
         }
 
+        //writing the data to the request body for the post, put or patch requests
         if (
             body != null &&
             method != "GET" &&
@@ -369,8 +390,9 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
             }
         }
 
-        val responseCode = connection.responseCode
+        val responseCode = connection.responseCode //checking the servers response to our reqyests
 
+        //throwing an error if the response code is a failure code so anything that isnt between 200 and 300
         val stream =
             if (responseCode in 200..299) {
                 connection.inputStream
@@ -411,11 +433,13 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
     }
 }
 
+//used to represent an error returned by the server
 data class ApiException(
     val code: Int,
     override val message: String
 ) : Exception(message)
 
+//these are just data models that are used throughout the app
 data class SeasonSnapshot(
     val coach: CoachProfile,
     val team: TeamProfile,
@@ -443,6 +467,7 @@ data class StatUpdate(
     val rating: Double
 )
 
+//used to convert a raw json array into a list of player objects
 private fun JSONArray?.toPlayers(): List<Player> {
 
     if (this == null) {
@@ -462,7 +487,7 @@ private fun JSONArray?.toPlayers(): List<Player> {
         )
     }
 }
-
+//used to convert a raw json array into a list of fixture objects
 private fun JSONArray?.toFixtures(): List<Fixture> {
 
     if (this == null) {
@@ -537,7 +562,7 @@ private fun JSONObject.toFixture(): Fixture {
         playerStats = playerStats
     )
 }
-
+//used to convert a raw json coach data into a coachprofile objects
 private fun JSONObject.toCoachProfile(): CoachProfile {
 
     return CoachProfile(
@@ -561,10 +586,11 @@ private fun JSONObject.toCoachProfile(): CoachProfile {
     )
 }
 
+//used to convert a raw json array into a list of player objects
 private fun JSONObject.toTeamProfile(): TeamProfile {
 
     val name =
-        optString("teamName")
+        if (isNull("teamName")) "" else optString("teamName")
 
     val ageGroup =
         if (isNull("ageGroup")) {
@@ -585,7 +611,7 @@ private fun JSONObject.toTeamProfile(): TeamProfile {
         inviteLink = ""
     )
 }
-
+//used to convert server date strings from api into readable date and time data for the user
 private fun parseDate(
     value: String
 ): Pair<String, String> {

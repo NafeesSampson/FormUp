@@ -17,7 +17,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.formup.app.data.ActivityEntry
-import com.formup.app.data.ApiException
 import com.formup.app.data.AppNotification
 import com.formup.app.data.AttendanceRecord
 import com.formup.app.data.AvailabilityStatus
@@ -92,6 +91,7 @@ import java.util.Calendar
 import java.util.Locale
 import kotlin.math.roundToInt
 
+// Central ViewModel holding application state, API sync, and screen navigation stack
 class FormUpViewModel : ViewModel() {
 
     // ---------------------------------------------------------------- state
@@ -114,6 +114,7 @@ class FormUpViewModel : ViewModel() {
         refreshFromApi()
     }
 
+    // Fetches full season snapshot (coach profile, team details, roster, fixtures) from backend
     fun refreshFromApi() {
         if (FirebaseAuth.getInstance().currentUser == null) return
         viewModelScope.launch {
@@ -250,7 +251,7 @@ class FormUpViewModel : ViewModel() {
             val leading = shown.get(Calendar.DAY_OF_WEEK) - Calendar.SUNDAY
             val count = shown.getActualMaximum(Calendar.DAY_OF_MONTH)
 
-            // 1. Convert match fixtures into CalendarEvent.Match
+            // Convert match fixtures into CalendarEvent.Match
             val matchEvents = fixtureList.map { fixture ->
                 CalendarEvent.Match(
                     id = fixture.id,
@@ -262,8 +263,7 @@ class FormUpViewModel : ViewModel() {
                 )
             }
 
-            // 2. Generate or fetch Training Sessions (CalendarEvent.Training)
-            // If retrieving from backend API, map your session DTOs here.
+            // Generate training session events
             val trainingEvents = listOf(
                 CalendarEvent.Training(
                     id = "training-1",
@@ -279,15 +279,13 @@ class FormUpViewModel : ViewModel() {
                 )
             )
 
-            // 3. Combine both Match and Training events
             val allEvents: List<CalendarEvent> = matchEvents + trainingEvents
 
-            // 4. Build month grid days with correct DayMarker indicators
+            // Build month grid with match/training markers
             val days = buildList {
                 repeat(leading) { add(CalendarDay(0, "", false, null)) }
                 for (day in 1..count) {
                     val hasMatch = fixtureList.any { fixtureDateParts(it.dateLabel)?.let { p -> p.first == day && p.second == month } == true }
-                    // Example marker logic: set DayMarker.TRAINING for mid-week training days (e.g. Tuesdays/Thursdays)
                     val dayOfWeek = Calendar.getInstance().apply {
                         set(year, month, day)
                     }.get(Calendar.DAY_OF_WEEK)
@@ -452,13 +450,10 @@ class FormUpViewModel : ViewModel() {
             runCatching {
                 api.getSquad(matchId)
             }.onSuccess { squad ->
-
                 val selections = squad.associate {
                     it.playerId to it.selection
                 }.toMutableMap()
-
                 matchSquadSelections[matchId] = selections
-
             }.onFailure {
                 notify(it.message ?: "Could not load lineup")
             }
@@ -490,11 +485,8 @@ class FormUpViewModel : ViewModel() {
         matchId: String,
         playerId: String
     ) {
-        val current =
-            lineupSelection(matchId, playerId)
-
-        val startingCount =
-            startingCount(matchId)
+        val current = lineupSelection(matchId, playerId)
+        val startingCount = startingCount(matchId)
 
         val next = when (current) {
             "NotSelected" -> {
@@ -502,41 +494,26 @@ class FormUpViewModel : ViewModel() {
                     notify("Starting XI is full")
                     return
                 }
-
                 "Starting"
             }
-
             "Starting" -> "Substitute"
-
             "Substitute" -> "NotSelected"
-
             else -> "NotSelected"
         }
 
-        val selections =
-            matchSquadSelections
-                .getOrPut(matchId) { mutableMapOf() }
-
+        val selections = matchSquadSelections.getOrPut(matchId) { mutableMapOf() }
         selections[playerId] = next
-
-        matchSquadSelections[matchId] =
-            selections.toMutableMap()
+        matchSquadSelections[matchId] = selections.toMutableMap()
     }
 
     fun clearMatchLineup(matchId: String) {
-        matchSquadSelections[matchId] =
-            mutableMapOf()
-
+        matchSquadSelections[matchId] = mutableMapOf()
         notify("Lineup cleared")
     }
 
     fun saveMatchLineup(matchId: String) {
-        val selections =
-            matchSquadSelections[matchId]
-                ?: mutableMapOf()
-
-        val starting =
-            selections.count { it.value == "Starting" }
+        val selections = matchSquadSelections[matchId] ?: mutableMapOf()
+        val starting = selections.count { it.value == "Starting" }
 
         if (starting != 11) {
             notify("Select exactly 11 starting players")
@@ -545,46 +522,27 @@ class FormUpViewModel : ViewModel() {
 
         viewModelScope.launch {
             runCatching {
-
-                val squad =
-                    playerList.map { player ->
-
-                        SquadUpdate(
-                            playerId = player.id,
-
-                            status = when (player.status) {
-                                AvailabilityStatus.Fit ->
-                                    "Available"
-
-                                AvailabilityStatus.Doubtful ->
-                                    "Available"
-
-                                AvailabilityStatus.Out ->
-                                    "Available"
-                            },
-
-                            selection =
-                                selections[player.id]
-                                    ?: "NotSelected"
-                        )
-                    }
+                val squad = playerList.map { player ->
+                    SquadUpdate(
+                        playerId = player.id,
+                        status = when (player.status) {
+                            AvailabilityStatus.Fit -> "Available"
+                            AvailabilityStatus.Doubtful -> "Available"
+                            AvailabilityStatus.Out -> "Available"
+                        },
+                        selection = selections[player.id] ?: "NotSelected"
+                    )
+                }
 
                 api.saveSquad(
                     matchId = matchId,
                     players = squad
                 )
-
             }.onSuccess {
-
                 notify("Lineup saved")
-
                 back()
-
             }.onFailure {
-                notify(
-                    it.message
-                        ?: "Could not save lineup"
-                )
+                notify(it.message ?: "Could not save lineup")
             }
         }
     }
@@ -728,7 +686,7 @@ class FormUpViewModel : ViewModel() {
         notify("All notifications marked as read")
     }
 
-    /** Opens whatever a notification points at, marking it read on the way. */
+    // Opens deep-linked destination associated with a notification
     fun openNotification(id: String) {
         val notification = notificationList.firstOrNull { it.id == id } ?: return
         markNotificationRead(id)

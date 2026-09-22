@@ -54,13 +54,14 @@ data class SignUpFormErrors(
     val password: String? = null
 )
 
-data class NewAccount(
+data class NewAccount( //passed to api when signing up with a new account
     val fullName: String,
     val email: String,
     val password: String,
     val role: AccountRole
 )
 
+//jetcompose ui components for signup screen
 @Composable
 fun SignUpScreen(
     onCreateAccount: (NewAccount) -> Unit = {},
@@ -68,7 +69,7 @@ fun SignUpScreen(
     onNavigateToLogin: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    // Defaulted to Coach: this build only wires the coach flow through to Create Team.
+    // Defaulted to Coach as that is the only option accepted by api
     var role by remember { mutableStateOf(AccountRole.COACH) }
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -110,7 +111,7 @@ fun SignUpScreen(
                 border = BorderStroke(1.dp, FormUpColors.Hairline)
             ) {
                 Column {
-                    // Accent bar matching the mockup's top edge stripe.
+
                     androidx.compose.foundation.layout.Box(
                         Modifier
                             .fillMaxWidth()

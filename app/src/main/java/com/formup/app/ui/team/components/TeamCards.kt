@@ -1,16 +1,12 @@
 package com.formup.app.ui.team.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,6 +21,7 @@ import com.formup.app.ui.team.SquadPlayer
 import com.formup.app.ui.theme.FormUpColors
 import com.formup.app.ui.theme.Mono
 
+// Card displaying the total registered squad player count
 @Composable
 fun SquadOverviewCard(
     total: Int,
@@ -59,6 +56,7 @@ fun SquadOverviewCard(
     }
 }
 
+// Single squad member row showing avatar initials, name, and position
 @Composable
 fun PlayerRow(
     player: SquadPlayer,
@@ -110,6 +108,7 @@ fun PlayerRow(
     }
 }
 
+// Extracts 1-2 capital initials from a full name string
 private fun initialsOf(name: String): String =
     name.trim()
         .split(" ")

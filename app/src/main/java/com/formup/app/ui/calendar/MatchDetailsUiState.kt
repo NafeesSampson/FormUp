@@ -28,6 +28,7 @@ data class MatchDetailsUiState(
     val attending: Int get() = inCount
 }
 
+//dummy information used for testing
 val SampleMatchDetailsState = MatchDetailsUiState(
     competitionTag = "League Match",
     title = "Match vs. Metro United",

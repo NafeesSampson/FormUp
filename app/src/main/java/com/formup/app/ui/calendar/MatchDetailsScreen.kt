@@ -52,6 +52,7 @@ import com.formup.app.ui.theme.FormUpColors
 import com.formup.app.ui.theme.FormUpTheme
 import com.formup.app.ui.theme.Mono
 
+//jetcompose ui for match details page. Calling api get methods to display match information
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MatchDetailsScreen(
@@ -153,6 +154,7 @@ fun MatchDetailsScreen(
     }
 }
 
+// Reusable row for displaying match information
 @Composable
 private fun InfoBlock(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, primary: String, secondary: String) {
     Row(verticalAlignment = Alignment.Top) {
@@ -169,6 +171,7 @@ private fun InfoBlock(icon: androidx.compose.ui.graphics.vector.ImageVector, lab
     }
 }
 
+// Custom segmented horizontal progress bar showing player availability
 @Composable
 private fun SquadAvailabilityBar(inCount: Int, tbdCount: Int, outCount: Int) {
     val total = (inCount + tbdCount + outCount).coerceAtLeast(1)
@@ -179,9 +182,9 @@ private fun SquadAvailabilityBar(inCount: Int, tbdCount: Int, outCount: Int) {
             .clip(RoundedCornerShape(4.dp))
             .background(FormUpColors.Hairline)
     ) {
-        Box(Modifier.weight(inCount.toFloat().coerceAtLeast(0.0001f)).fillMaxSize().background(FormUpColors.Primary))
-        Box(Modifier.weight(tbdCount.toFloat().coerceAtLeast(0.0001f)).fillMaxSize().background(FormUpColors.AmberIcon))
-        Box(Modifier.weight(outCount.toFloat().coerceAtLeast(0.0001f)).fillMaxSize().background(FormUpColors.Hairline))
+        Box(Modifier.weight(inCount.toFloat().coerceAtLeast(0.0001f)).fillMaxSize().background(FormUpColors.Primary)) //green for available
+        Box(Modifier.weight(tbdCount.toFloat().coerceAtLeast(0.0001f)).fillMaxSize().background(FormUpColors.AmberIcon)) //orange for unconfirmed
+        Box(Modifier.weight(outCount.toFloat().coerceAtLeast(0.0001f)).fillMaxSize().background(FormUpColors.Hairline)) //red for unavailable
     }
 }
 
@@ -196,6 +199,7 @@ private fun AvailabilityStat(label: String, value: Int, color: Color, modifier: 
     }
 }
 
+// stat box displaying how many players are in, out or tbd
 @Composable
 private fun PitchView(players: List<LineupPlayer>) {
     Box(

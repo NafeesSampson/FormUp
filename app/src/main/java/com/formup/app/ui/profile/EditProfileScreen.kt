@@ -37,7 +37,7 @@ import com.formup.app.ui.home.components.SectionCard
 import com.formup.app.ui.theme.FormUpColors
 import com.formup.app.ui.theme.Mono
 
-/** Edits both the coach profile and the team information block shown on the profile page. */
+// Form for editing coach profile details and team metadata
 @Composable
 fun EditProfileScreen(
     coachName: String,
@@ -60,6 +60,7 @@ fun EditProfileScreen(
     onSelectTab: (HomeTab) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Local state pre-filled with current values
     var name by remember { mutableStateOf(coachName) }
     var role by remember { mutableStateOf(coachRole) }
     var team by remember { mutableStateOf(teamName) }
@@ -85,6 +86,7 @@ fun EditProfileScreen(
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
+                // Coach info
                 item {
                     SectionCard(modifier = Modifier.fillMaxWidth()) {
                         Text(
@@ -99,6 +101,7 @@ fun EditProfileScreen(
                     }
                 }
 
+                // Team info
                 item {
                     SectionCard(modifier = Modifier.fillMaxWidth()) {
                         Text(
@@ -117,6 +120,7 @@ fun EditProfileScreen(
                     }
                 }
 
+                // Action buttons
                 item {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         OutlinedButton(
@@ -150,6 +154,7 @@ fun EditProfileScreen(
     }
 }
 
+// Reusable text input field styled for FormUp forms
 @Composable
 private fun FormField(label: String, value: String, onValueChange: (String) -> Unit) {
     OutlinedTextField(

@@ -58,6 +58,7 @@ import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
+// Form screen for creating and registering a new player on the team roster
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,6 +74,7 @@ fun AddPlayerScreen(
         form = block(form)
     }
 
+    // Validates inputs and invokes save callback if valid
     fun save() {
         val nameError =
             if (form.fullName.isBlank()) "Enter the player's name" else null
@@ -129,6 +131,7 @@ fun AddPlayerScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
+            // Player profile details (Name, DOB, Position, Jersey #)
             item {
                 SectionCard(
                     modifier = Modifier.fillMaxWidth(),
@@ -226,6 +229,7 @@ fun AddPlayerScreen(
                 }
             }
 
+            // Contact & guardian info
             item {
                 SectionCard(
                     modifier = Modifier.fillMaxWidth(),
@@ -278,6 +282,7 @@ fun AddPlayerScreen(
                 }
             }
 
+            // Submit action
             item {
                 Button(
                     onClick = ::save,
@@ -299,6 +304,7 @@ fun AddPlayerScreen(
         }
     }
 
+    // Modal date picker overlay for selecting birth date
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState()
 
@@ -339,6 +345,7 @@ fun AddPlayerScreen(
     }
 }
 
+// Clickable date selector trigger field
 @Composable
 private fun DateTimeField(
     value: String,
@@ -383,6 +390,7 @@ private fun FieldLabel(text: String) {
     )
 }
 
+// Standard text input with optional error text
 @Composable
 private fun FormField(
     value: String,
@@ -428,6 +436,7 @@ private fun FormField(
     }
 }
 
+// Dropdown picker for selecting player position
 @Composable
 private fun PositionDropdown(
     selected: String,

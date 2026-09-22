@@ -61,16 +61,19 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 
+// Main screen for creating new calendar events (Training Sessions or Matches)
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ManageEventScreen(
-    onBack: () -> Unit = {},
-    onEventCreated: (CalendarEvent) -> Unit = {},
+    onBack: () -> Unit = {},                            // Callback when user taps top back button
+    onEventCreated: (CalendarEvent) -> Unit = {},       // Callback fired after successful event creation
     modifier: Modifier = Modifier
 ) {
+    // Tracks selected event type tab (defaults to Training)
     var kind by remember { mutableStateOf(EventKind.TRAINING) }
 
+    // Form input states for Training and Match sessions
     var trainingForm by remember {
         mutableStateOf(TrainingFormState())
     }
@@ -79,15 +82,20 @@ fun ManageEventScreen(
         mutableStateOf(MatchFormState())
     }
 
+    // Visibility flags for Date and Time picker popups
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
 
+    // Loading flag to prevent multiple API submit requests at once
     var saving by remember { mutableStateOf(false) }
 
+    // Scope for running async network requests safely within Compose lifecycle
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
+    // Validates inputs and submits a new Training session to the backend server
     fun createTraining() {
+        // Validate date field selection
         val dateError =
             if (trainingForm.date.isBlank()) {
                 "Select a session date"
@@ -104,6 +112,7 @@ fun ManageEventScreen(
             return
         }
 
+        // Convert user-selected date and time strings into an ISO date time string
         val isoDate = createIsoDateTime(
             trainingForm.date,
             trainingForm.time
@@ -120,6 +129,7 @@ fun ManageEventScreen(
 
         saving = true
 
+        // Async API network call that is executed inside the coroutine scope
         scope.launch {
             try {
                 val createdId = FormUpApi().createSession(
@@ -127,6 +137,7 @@ fun ManageEventScreen(
                     notes = trainingForm.notes.trim().ifBlank { null }
                 )
 
+                // Return newly created object back to caller screen
                 onEventCreated(
                     CalendarEvent.Training(
                         id = createdId,
@@ -136,6 +147,7 @@ fun ManageEventScreen(
                     )
                 )
             } catch (e: Exception) {
+                // Show error message toast on network or server error
                 android.widget.Toast.makeText(
                     context,
                     e.message ?: "Could not create training session",
@@ -147,7 +159,9 @@ fun ManageEventScreen(
         }
     }
 
+    // Validates inputs and submits a new Match event to the backend server
     fun createMatch() {
+        // Validate required fields (Opponent name and Date)
         val opponentError =
             if (matchForm.opponent.isBlank()) {
                 "Enter the opponent"
@@ -174,6 +188,7 @@ fun ManageEventScreen(
             return
         }
 
+        // Convert user-selected date and time strings into ISO format
         val isoDate = createIsoDateTime(
             matchForm.date,
             matchForm.time
@@ -190,6 +205,7 @@ fun ManageEventScreen(
 
         saving = true
 
+        // Async API request sending match data
         scope.launch {
             try {
                 val createdId = FormUpApi().createMatch(
@@ -198,6 +214,7 @@ fun ManageEventScreen(
                     venue = matchForm.venue
                 )
 
+                // Return newly created Match event
                 onEventCreated(
                     CalendarEvent.Match(
                         id = createdId,
@@ -209,6 +226,7 @@ fun ManageEventScreen(
                     )
                 )
             } catch (e: Exception) {
+                // Show error feedback toast on network failure
                 android.widget.Toast.makeText(
                     context,
                     e.message ?: "Could not create match",
@@ -220,6 +238,7 @@ fun ManageEventScreen(
         }
     }
 
+    // Top-level screen scaffold with Top Bar header
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = FormUpColors.Background,
@@ -253,6 +272,7 @@ fun ManageEventScreen(
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
 
+            // Tab bar toggle to switch between Training and Match form inputs
             EventTypeToggle(
                 selected = kind,
                 onSelect = {
@@ -262,6 +282,7 @@ fun ManageEventScreen(
                 }
             )
 
+            // Dynamically renders Match inputs or Training inputs based on active tab
             when (kind) {
                 EventKind.MATCH -> {
                     SectionCard(
@@ -270,6 +291,7 @@ fun ManageEventScreen(
                     ) {
                         FieldLabel("Opponent")
 
+                        // Opponent name input field
                         FormField(
                             value = matchForm.opponent,
                             onValueChange = {
@@ -286,6 +308,7 @@ fun ManageEventScreen(
 
                         FieldLabel("Venue")
 
+                        // Home/Away toggle chip filter options
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -313,6 +336,7 @@ fun ManageEventScreen(
 
                         FieldLabel("Match Date")
 
+                        // Read-only field opening date picker dialog on tap
                         DateTimeField(
                             value = matchForm.date.ifBlank { "Select date" },
                             onClick = { showDatePicker = true }
@@ -331,6 +355,7 @@ fun ManageEventScreen(
 
                         FieldLabel("Kickoff Time")
 
+                        // Read-only field opening time picker dialog on tap
                         DateTimeField(
                             value = matchForm.time.ifBlank { "Select time" },
                             onClick = { showTimePicker = true }
@@ -345,6 +370,7 @@ fun ManageEventScreen(
                     ) {
                         FieldLabel("Session Date")
 
+                        // Date picker input field trigger
                         DateTimeField(
                             value = trainingForm.date.ifBlank { "Select date" },
                             onClick = { showDatePicker = true }
@@ -363,6 +389,7 @@ fun ManageEventScreen(
 
                         FieldLabel("Session Time")
 
+                        // Time picker input field trigger
                         DateTimeField(
                             value = trainingForm.time.ifBlank { "Select time" },
                             onClick = { showTimePicker = true }
@@ -372,6 +399,7 @@ fun ManageEventScreen(
 
                         FieldLabel("Notes")
 
+                        // Optional multiline notes text box
                         OutlinedTextField(
                             value = trainingForm.notes,
                             onValueChange = {
@@ -398,6 +426,7 @@ fun ManageEventScreen(
 
             Spacer(Modifier.weight(1f))
 
+            // Main event creation submit button (Disabled while waiting for API response) to make sure multiple requests arent sent
             Button(
                 onClick = {
                     if (kind == EventKind.MATCH) {
@@ -428,6 +457,7 @@ fun ManageEventScreen(
         }
     }
 
+    // Material 3 Date Picker Dialog logic
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState()
 
@@ -438,6 +468,7 @@ fun ManageEventScreen(
                     onClick = {
                         val millis = datePickerState.selectedDateMillis
                         if (millis != null) {
+                            // Format selected epoch milliseconds into readable date string ("dd MMM yyyy")
                             val date = Instant
                                 .ofEpochMilli(millis)
                                 .atZone(java.time.ZoneOffset.UTC)
@@ -447,6 +478,7 @@ fun ManageEventScreen(
                                 DateTimeFormatter.ofPattern("dd MMM yyyy")
                             )
 
+                            // Update corresponding form state
                             if (kind == EventKind.MATCH) {
                                 matchForm = matchForm.copy(date = formatted, dateError = null)
                             } else {
@@ -469,6 +501,7 @@ fun ManageEventScreen(
         }
     }
 
+    // Material 3 Time Picker Dialog logic
     if (showTimePicker) {
         val timePickerState = rememberTimePickerState(
             initialHour = 18,
@@ -481,12 +514,14 @@ fun ManageEventScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
+                        // Format selected hour and minute into "HH:mm" time string
                         val selectedTime = String.format(
                             "%02d:%02d",
                             timePickerState.hour,
                             timePickerState.minute
                         )
 
+                        // Update corresponding form state
                         if (kind == EventKind.MATCH) {
                             matchForm = matchForm.copy(time = selectedTime)
                         } else {
@@ -516,6 +551,7 @@ fun ManageEventScreen(
     }
 }
 
+// Segmented tab control component to select event category (Training vs Match)
 @Composable
 private fun EventTypeToggle(
     selected: EventKind,
@@ -558,6 +594,7 @@ private fun EventTypeToggle(
     }
 }
 
+// Clickable read-only text field used as a button to launch Date or Time pickers
 @Composable
 private fun DateTimeField(
     value: String,
@@ -583,6 +620,7 @@ private fun DateTimeField(
                 disabledPlaceholderColor = FormUpColors.TextSecondary
             )
         )
+        // Click overlay box to ensure clicks still register over disabled text fields
         Box(
             modifier = Modifier
                 .matchParentSize()
@@ -591,6 +629,7 @@ private fun DateTimeField(
     }
 }
 
+// Small section title header text above form inputs
 @Composable
 private fun FieldLabel(text: String) {
     Text(
@@ -601,6 +640,7 @@ private fun FieldLabel(text: String) {
     )
 }
 
+// Reusable text input field with optional validation error message text below
 @Composable
 private fun FormField(
     value: String,
@@ -637,17 +677,20 @@ private fun FormField(
     }
 }
 
+// Helper function converting formatted date and time strings to required format for api
 @RequiresApi(Build.VERSION_CODES.O)
 private fun createIsoDateTime(
     dateText: String,
     timeText: String
 ): String? {
     return try {
+        // Parsing "dd MMM yyyy" format
         val date = LocalDate.parse(
             dateText,
             DateTimeFormatter.ofPattern("dd MMM yyyy")
         )
 
+        // Parsing "HH:mm" 24-hour time format
         val time = LocalTime.parse(
             timeText,
             DateTimeFormatter.ofPattern("HH:mm")
@@ -655,6 +698,7 @@ private fun createIsoDateTime(
 
         val dateTime = date.atTime(time)
 
+        // Converting to correct format for date that api needs
         dateTime
             .atZone(ZoneId.systemDefault())
             .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
@@ -664,6 +708,7 @@ private fun createIsoDateTime(
     }
 }
 
+// Preview composable to render layout inside Android Studio design editor
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true, widthDp = 360, heightDp = 900)
 @Composable

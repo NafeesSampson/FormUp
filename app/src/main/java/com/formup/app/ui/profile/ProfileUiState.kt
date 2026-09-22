@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.SportsSoccer
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.ui.graphics.vector.ImageVector
 
+// Single key performance indicator shown on the profile grid
 data class SeasonStat(
     val label: String,
     val value: String,
@@ -17,6 +18,7 @@ data class SeasonStat(
 
 enum class ActivityTone { Match, Training }
 
+// Event log item for recent matches or training sessions
 data class ActivityItem(
     val title: String,
     val subtitle: String,
@@ -30,6 +32,7 @@ data class ActivityItem(
         }
 }
 
+// Summary details of the coach's assigned club and squad
 data class TeamInfo(
     val teamName: String,
     val squad: String,
@@ -44,6 +47,7 @@ data class LanguageOption(
     val nativeLabel: String
 )
 
+// List of supported app localization languages
 val SupportedLanguages = listOf(
     LanguageOption("en", "English", "English"),
     LanguageOption("af", "Afrikaans", "Afrikaans"),
@@ -53,6 +57,7 @@ val SupportedLanguages = listOf(
     LanguageOption("es", "Spanish", "Español")
 )
 
+// UI state for the profile and settings screen
 data class ProfileUiState(
     val name: String,
     val role: String,
@@ -66,6 +71,7 @@ data class ProfileUiState(
     val unreadNotifications: Boolean
 )
 
+// Mock profile state for UI previews
 val SampleProfileState = ProfileUiState(
     name = "Thomas Newman",
     role = "Coach",

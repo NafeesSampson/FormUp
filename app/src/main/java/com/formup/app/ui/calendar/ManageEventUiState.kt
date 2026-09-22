@@ -1,5 +1,6 @@
 package com.formup.app.ui.calendar
 
+//data classes for events such as matches and trainings. these data classes is what is passed to api
 enum class EventKind {
     TRAINING,
     MATCH

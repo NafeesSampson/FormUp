@@ -1,5 +1,6 @@
 package com.formup.app.ui.calendar
 
+//populating the calender ui with the correct information
 data class CalendarDay(
     val date: Int,
     val dayLetter: String,

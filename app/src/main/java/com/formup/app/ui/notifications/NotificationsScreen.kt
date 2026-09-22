@@ -1,8 +1,6 @@
 package com.formup.app.ui.notifications
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -32,6 +30,7 @@ import com.formup.app.ui.theme.FormUpColors
 import com.formup.app.ui.theme.FormUpTheme
 import com.formup.app.ui.theme.Mono
 
+// Main notifications screen displaying grouped notification items.
 @Composable
 fun NotificationsScreen(
     state: NotificationsUiState = SampleNotificationsState,
@@ -94,6 +93,7 @@ fun NotificationsScreen(
                 color = FormUpColors.Surface,
                 border = androidx.compose.foundation.BorderStroke(1.dp, FormUpColors.Hairline)
             ) {
+                // Filter out empty groups and preserve enum section order
                 val orderedGroups = NotificationGroup.entries.mapNotNull { group ->
                     grouped[group]?.takeIf { it.isNotEmpty() }?.let { group to it }
                 }
@@ -121,6 +121,7 @@ fun NotificationsScreen(
                                 isUnread = notification.id in unreadIds,
                                 onAction = { onOpenNotification(notification.id) }
                             )
+                            // Don't draw a divider below the very last item in the list
                             if (notification.id != lastItemId) {
                                 HorizontalDivider(color = FormUpColors.Hairline)
                             }
