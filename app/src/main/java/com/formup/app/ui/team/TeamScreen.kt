@@ -1,13 +1,10 @@
 package com.formup.app.ui.team
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -49,7 +46,9 @@ import com.formup.app.ui.team.components.PlayerRow
 import com.formup.app.ui.team.components.SquadOverviewCard
 import com.formup.app.ui.theme.FormUpColors
 import com.formup.app.ui.theme.FormUpTheme
+import com.formup.app.ui.theme.Mono
 
+// Main squad management screen showing player roster and search
 @Composable
 fun TeamScreen(
     state: TeamUiState = SampleTeamState,
@@ -61,6 +60,7 @@ fun TeamScreen(
 ) {
     var query by remember { mutableStateOf("") }
 
+    // Filter player list by name query
     val visiblePlayers = state.players.filter {
         query.isBlank() ||
                 it.fullName.contains(
@@ -97,6 +97,7 @@ fun TeamScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            // Search field
             item {
                 OutlinedTextField(
                     value = query,
@@ -127,14 +128,16 @@ fun TeamScreen(
                 )
             }
 
+            // Squad overview count
             item {
                 SquadOverviewCard(
                     total = state.total
                 )
             }
 
+            // Player roster header
             item {
-                androidx.compose.foundation.layout.Row(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
@@ -152,13 +155,14 @@ fun TeamScreen(
 
                     Text(
                         "${state.total} PLAYERS",
-                        fontFamily = com.formup.app.ui.theme.Mono,
+                        fontFamily = Mono,
                         fontSize = 11.sp,
                         color = FormUpColors.TextSecondary
                     )
                 }
             }
 
+            // Player list entries
             if (visiblePlayers.isEmpty()) {
                 item {
                     SectionCard(
@@ -191,6 +195,7 @@ fun TeamScreen(
                 Spacer(Modifier.height(4.dp))
             }
 
+            // Roster management actions (Add Player & Export Data)
             item {
                 Button(
                     onClick = onAddPlayer,

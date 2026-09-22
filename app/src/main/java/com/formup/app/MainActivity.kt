@@ -12,7 +12,6 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -72,8 +71,6 @@ import com.formup.app.ui.calendar.CalendarScreen
 import com.formup.app.ui.calendar.ManageEventScreen
 import com.formup.app.ui.calendar.MatchDetailsScreen
 import com.formup.app.ui.home.HomeScreen
-import com.formup.app.ui.home.components.FormUpBottomBar
-import com.formup.app.ui.home.components.FormUpTopBar
 import com.formup.app.ui.home.components.HomeTab
 import com.formup.app.ui.invite.InvitePlayerScreen
 import com.formup.app.ui.invite.InvitePlayerUiState
@@ -92,6 +89,8 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 import com.formup.app.data.FormUpApi
+
+// Entry point Activity for FormUp
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -109,6 +108,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+// Root composable managing authentication, team onboarding, toasts, and screen routing
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun FormUpApp(viewModel: FormUpViewModel = viewModel()) {
@@ -132,6 +132,7 @@ private fun FormUpApp(viewModel: FormUpViewModel = viewModel()) {
         onDispose { auth.removeAuthStateListener(listener) }
     }
 
+    // Handles sign-in/sign-up tasks and checks if the coach needs to set up a team
     fun completeSignIn(block: suspend () -> Boolean) {
         scope.launch {
             try {
@@ -150,6 +151,7 @@ private fun FormUpApp(viewModel: FormUpViewModel = viewModel()) {
         }
     }
 
+    // Auth screen flow (Login / Sign Up)
     if (!signedIn) {
         if (showSignUp) {
             SignUpScreen(
@@ -182,6 +184,7 @@ private fun FormUpApp(viewModel: FormUpViewModel = viewModel()) {
         return
     }
 
+    // Onboarding flow for coaches without an active team profile
     if (needsTeam) {
         CreateTeamScreen(
             onBack = { auth.signOut() },
@@ -201,7 +204,7 @@ private fun FormUpApp(viewModel: FormUpViewModel = viewModel()) {
         return
     }
 
-    // One-shot feedback from the ViewModel.
+    // One-shot feedback toasts from ViewModel
     val message = viewModel.message
     LaunchedEffect(message) {
         if (message != null) {
@@ -210,6 +213,7 @@ private fun FormUpApp(viewModel: FormUpViewModel = viewModel()) {
         }
     }
 
+    // System back button handling
     val activity = context as? ComponentActivity
     BackHandler(enabled = true) {
         if (!viewModel.back()) activity?.finish()
@@ -219,6 +223,7 @@ private fun FormUpApp(viewModel: FormUpViewModel = viewModel()) {
     val openNotifications = { viewModel.navigate(Destination.Notifications) }
     val selectTab: (HomeTab) -> Unit = { viewModel.selectTab(it) }
 
+    // Screen destination router
     when (val screen = viewModel.current) {
 
         Destination.Home -> HomeScreen(
@@ -409,8 +414,11 @@ private fun FormUpApp(viewModel: FormUpViewModel = viewModel()) {
         )
     }
 }
+
 private fun ageGroupNumber(label: String): Int =
     Regex("\\d+").find(label)?.value?.toIntOrNull() ?: 18
+
+// Screen for picking starting XI players for an upcoming fixture
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LineupSelectionScreen(

@@ -18,8 +18,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.PlaylistAddCheck
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.PlaylistAddCheck
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -53,8 +53,9 @@ import com.formup.app.ui.theme.FormUpColors
 import com.formup.app.ui.theme.FormUpTheme
 import com.formup.app.ui.theme.Mono
 
-private enum class PerformerTab(val label: String) { Goals("Goals"), Assists("Assists") }
+private enum class PerformerTab { Goals, Assists }
 
+// Team analytics screen showing performance summaries, leaderboards, and recent match stats
 @Composable
 fun StatsScreen(
     state: StatsUiState = SampleStatsState,
@@ -101,6 +102,7 @@ fun StatsScreen(
                 }
             }
 
+            // Quick action toolbar (Filter, Input Stats, Export PDF)
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -134,7 +136,7 @@ fun StatsScreen(
                         )
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.PlaylistAddCheck,
+                            imageVector = Icons.AutoMirrored.Filled.PlaylistAddCheck,
                             contentDescription = null,
                             modifier = Modifier.size(16.dp)
                         )
@@ -164,6 +166,7 @@ fun StatsScreen(
                 }
             }
 
+            // High-level season metrics grid
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     state.summary.chunked(2).forEach { rowStats ->
@@ -182,6 +185,7 @@ fun StatsScreen(
                 }
             }
 
+            // Top performers leaderboard (Goals / Assists)
             item {
                 SectionCard(modifier = Modifier.fillMaxWidth()) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -214,6 +218,7 @@ fun StatsScreen(
                 }
             }
 
+            // Quick summary of the last completed match
             item {
                 SectionCard(modifier = Modifier.fillMaxWidth()) {
                     Text(
@@ -244,6 +249,7 @@ fun StatsScreen(
     }
 }
 
+// Single metric card with a title, current value, and progress indicator
 @Composable
 private fun SummaryStatCard(stat: SummaryStat, modifier: Modifier = Modifier) {
     Surface(
@@ -283,6 +289,7 @@ private fun SummaryStatCard(stat: SummaryStat, modifier: Modifier = Modifier) {
     }
 }
 
+// Filter button pill for toggling between top performers categories
 @Composable
 private fun PerformerTabPill(label: String, selected: Boolean, onClick: () -> Unit) {
     Surface(
@@ -302,6 +309,7 @@ private fun PerformerTabPill(label: String, selected: Boolean, onClick: () -> Un
     }
 }
 
+// Player entry row on the leaderboards table
 @Composable
 private fun TopPerformerRow(performer: TopPerformer) {
     Row(
@@ -354,6 +362,7 @@ private fun TopPerformerRow(performer: TopPerformer) {
     }
 }
 
+// Single progress bar row in the last match analysis card
 @Composable
 private fun MatchStatRowView(row: MatchStatRow) {
     Column {

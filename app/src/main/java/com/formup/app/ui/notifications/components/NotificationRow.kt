@@ -29,10 +29,7 @@ import com.formup.app.ui.notifications.NotificationItem
 import com.formup.app.ui.theme.FormUpColors
 import com.formup.app.ui.theme.Mono
 
-/**
- * A single row in the Notifications feed. Unread ("new") items carry a solid
- * accent bar on the leading edge; read items render flush.
- */
+// Displays a notification entry with an icon, message, timestamp, and optional CTA button.
 @Composable
 fun NotificationRow(
     item: NotificationItem,
@@ -41,6 +38,7 @@ fun NotificationRow(
     modifier: Modifier = Modifier
 ) {
     Row(modifier = modifier.fillMaxWidth()) {
+        // Unread indicator stripe along the left edge
         Box(
             Modifier
                 .width(3.dp)
@@ -85,6 +83,7 @@ fun NotificationRow(
                         color = FormUpColors.TextSecondary
                     )
 
+                    // Optional action button (e.g. "View Lineup", "RSVP")
                     if (item.actionLabel != null) {
                         Spacer(Modifier.height(10.dp))
                         Surface(

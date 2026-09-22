@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.formup.app.ui.theme.FormUpColors
 
-
+// Simple progress bar with a background track and filled progress indicator
 @Composable
 fun StatProgressBar(
     progress: Float,
@@ -41,7 +41,7 @@ fun StatProgressBar(
     }
 }
 
-
+// Split comparative progress bar showing proportions between two opposing stats
 @Composable
 fun DualStatBar(
     leftValue: Float,
