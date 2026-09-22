@@ -13,13 +13,19 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -43,9 +49,15 @@ fun HomeScreen(
     onNotifications: () -> Unit = {},
     onInvitePlayer: () -> Unit = {},
     onStats: () -> Unit = {},
+    onMatchDetails: () -> Unit = {},
+    onLineup: () -> Unit = {},
+    onAttendance: () -> Unit = {},
+    onViewResults: () -> Unit = {},
     onSelectTab: (HomeTab) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    var showAvailabilityInfo by remember { mutableStateOf(false) }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = FormUpColors.Background,
@@ -56,43 +68,32 @@ fun HomeScreen(
             )
         },
         bottomBar = {
-            FormUpBottomBar(
-                selected = HomeTab.Home,
-                onSelect = onSelectTab
-            )
+            FormUpBottomBar(selected = HomeTab.Home, onSelect = onSelectTab)
         }
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            contentPadding = PaddingValues(
-                start = 16.dp,
-                end = 16.dp,
-                top = 18.dp,
-                bottom = 20.dp
-            ),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 18.dp, bottom = 20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             item {
-                Greeting(
-                    name = state.coachName,
-                    prompt = state.prompt
-                )
+                Greeting(name = state.coachName, prompt = state.prompt)
             }
 
             item {
                 NextMatchCard(
                     match = state.nextMatch,
-                    onMatchDetails = { /* TODO: navigate to match details */ },
-                    onLineup = { /* TODO: navigate to lineup */ }
+                    onMatchDetails = onMatchDetails,
+                    onLineup = onLineup
                 )
             }
 
             item {
                 QuickActionsRow(
-                    onAttendance = { /* TODO */ },
-                    onSelection = { /* TODO */ },
+                    onAttendance = onAttendance,
+                    onSelection = onLineup,
                     onStats = onStats
                 )
             }
@@ -100,14 +101,14 @@ fun HomeScreen(
             item {
                 AvailabilityCard(
                     availability = state.availability,
-                    onInfo = { /* TODO: show availability info */ }
+                    onInfo = { showAvailabilityInfo = true }
                 )
             }
 
             item {
                 LastMatchCard(
                     match = state.lastMatch,
-                    onViewAll = { /* TODO: navigate to results */ }
+                    onViewAll = onViewResults
                 )
             }
 
@@ -131,22 +132,48 @@ fun HomeScreen(
             }
         }
     }
+
+    if (showAvailabilityInfo) {
+        val availability = state.availability
+        AlertDialog(
+            onDismissRequest = { showAvailabilityInfo = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    showAvailabilityInfo = false
+                    onAttendance()
+                }) {
+                    Text("Set attendance", color = FormUpColors.PrimaryDeep)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAvailabilityInfo = false }) {
+                    Text("Close", color = FormUpColors.TextSecondary)
+                }
+            },
+            containerColor = FormUpColors.Surface,
+            title = { Text("Squad availability", style = MaterialTheme.typography.titleLarge) },
+            text = {
+                Text(
+                    text = "${availability.fit} fit, ${availability.doubtful} doubtful and " +
+                            "${availability.out} out of ${availability.total} players. " +
+                            "RSVPs update as players respond.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = FormUpColors.TextSecondary
+                )
+            }
+        )
+    }
 }
 
 @Composable
-private fun Greeting(
-    name: String,
-    prompt: String
-) {
+private fun Greeting(name: String, prompt: String) {
     androidx.compose.foundation.layout.Column {
         Text(
             text = "Welcome back, $name",
             style = MaterialTheme.typography.headlineMedium,
             color = FormUpColors.TextPrimary
         )
-
         Spacer(Modifier.height(6.dp))
-
         Text(
             text = prompt,
             style = MaterialTheme.typography.bodyMedium,
@@ -156,10 +183,7 @@ private fun Greeting(
 }
 
 @Composable
-private fun InvitePlayerButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
+private fun InvitePlayerButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     Button(
         onClick = onClick,
         modifier = modifier
@@ -176,9 +200,7 @@ private fun InvitePlayerButton(
             contentDescription = null,
             modifier = Modifier.size(18.dp)
         )
-
         Spacer(Modifier.size(8.dp))
-
         Text(
             text = "Invite Player",
             fontFamily = Mono,

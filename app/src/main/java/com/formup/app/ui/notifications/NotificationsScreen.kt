@@ -18,10 +18,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -39,12 +35,13 @@ import com.formup.app.ui.theme.Mono
 @Composable
 fun NotificationsScreen(
     state: NotificationsUiState = SampleNotificationsState,
+    unreadIds: Set<String> = emptySet(),
     onBack: () -> Unit = {},
+    onMarkAllRead: () -> Unit = {},
+    onOpenNotification: (String) -> Unit = {},
+    onSelectTab: (HomeTab) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    var readIds by remember { mutableStateOf(setOf<String>()) }
-    var selectedTab by remember { mutableStateOf(HomeTab.Home) }
-
     val grouped = state.grouped
 
     Scaffold(
@@ -58,8 +55,8 @@ fun NotificationsScreen(
         },
         bottomBar = {
             FormUpBottomBar(
-                selected = selectedTab,
-                onSelect = { selectedTab = it }
+                selected = HomeTab.Home,
+                onSelect = onSelectTab
             )
         }
     ) { innerPadding ->
@@ -85,9 +82,7 @@ fun NotificationsScreen(
                     fontFamily = Mono,
                     fontSize = 11.sp,
                     color = FormUpColors.Primary,
-                    modifier = Modifier.clickable {
-                        readIds = state.items.map { it.id }.toSet()
-                    }
+                    modifier = Modifier.clickable(onClick = onMarkAllRead)
                 )
             }
 
@@ -121,11 +116,10 @@ fun NotificationsScreen(
                         }
 
                         items(groupItems, key = { it.id }) { notification ->
-                            val isUnread = group == NotificationGroup.New && notification.id !in readIds
                             NotificationRow(
                                 item = notification,
-                                isUnread = isUnread,
-                                onAction = { readIds = readIds + notification.id }
+                                isUnread = notification.id in unreadIds,
+                                onAction = { onOpenNotification(notification.id) }
                             )
                             if (notification.id != lastItemId) {
                                 HorizontalDivider(color = FormUpColors.Hairline)
