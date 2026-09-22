@@ -44,7 +44,7 @@ class AuthInterceptor : Interceptor {
 }
 
 object ApiClient {
-    private const val BASE_URL = "http://prog7314.runasp.net/"   
+    private const val BASE_URL = "http://prog7314.runasp.net/"
 
     private val client = OkHttpClient.Builder()
         .addInterceptor(AuthInterceptor())
