@@ -564,7 +564,7 @@ private fun JSONObject.toCoachProfile(): CoachProfile {
 private fun JSONObject.toTeamProfile(): TeamProfile {
 
     val name =
-        optString("teamName")
+        if (isNull("teamName")) "" else optString("teamName")
 
     val ageGroup =
         if (isNull("ageGroup")) {

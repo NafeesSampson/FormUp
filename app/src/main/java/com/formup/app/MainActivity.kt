@@ -91,7 +91,7 @@ import com.formup.app.ui.theme.FormUpTheme
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
-
+import com.formup.app.data.FormUpApi
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -186,10 +186,16 @@ private fun FormUpApp(viewModel: FormUpViewModel = viewModel()) {
         CreateTeamScreen(
             onBack = { auth.signOut() },
             onCancel = { auth.signOut() },
-            onTeamCreated = {
-                // TODO: send team.teamName / team.ageGroupLevel to PUT /api/team
-                needsTeam = false
-                viewModel.refreshFromApi()
+            onTeamCreated = { team ->
+                scope.launch {
+                    runCatching {
+                        FormUpApi().updateTeam(team.teamName.trim(), ageGroupNumber(team.ageGroupLevel))
+                    }.onFailure {
+                        Toast.makeText(context, it.message ?: "Could not save team", Toast.LENGTH_LONG).show()
+                    }
+                    needsTeam = false
+                    viewModel.refreshFromApi()
+                }
             }
         )
         return
@@ -403,7 +409,8 @@ private fun FormUpApp(viewModel: FormUpViewModel = viewModel()) {
         )
     }
 }
-
+private fun ageGroupNumber(label: String): Int =
+    Regex("\\d+").find(label)?.value?.toIntOrNull() ?: 18
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LineupSelectionScreen(
