@@ -2,7 +2,7 @@ package com.formup.app.ui.calendar
 
 import java.text.SimpleDateFormat
 import java.util.Locale
-
+import java.util.TimeZone
 enum class EventKind { TRAINING, LINEUP }
 
 data class FormationSpot(val xPercent: Float, val yPercent: Float, val isGoalkeeper: Boolean = false)
@@ -34,6 +34,16 @@ val Formation442 = Formation(
     )
 )
 
+fun toIsoUtc(dateText: String, timeText: String): String? {
+    val combined = if (timeText.isBlank()) "$dateText 00:00" else "$dateText $timeText"
+    val parsed = runCatching {
+        SimpleDateFormat("MM/dd/yyyy HH:mm", Locale.US).apply { isLenient = false }.parse(combined)
+    }.getOrNull() ?: return null
+    return SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
+        timeZone = TimeZone.getTimeZone("UTC")
+    }.format(parsed)
+}
+
 val AvailableFormations = listOf(Formation433, Formation442)
 
 data class TrainingFormState(
@@ -53,6 +63,7 @@ data class LineupFormState(
     val kickoffTime: String = "",
     val arrivalTime: String = "",
     val location: String = "",
+    val isHome: Boolean = true,
     val formation: Formation = AvailableFormations.first(),
     val opponentError: String? = null,
     val dateError: String? = null,

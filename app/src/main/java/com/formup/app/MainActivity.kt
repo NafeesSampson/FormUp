@@ -88,6 +88,7 @@ import com.formup.app.ui.theme.FormUpTheme
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
+import com.formup.app.ui.calendar.ManageEventScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -319,17 +320,11 @@ private fun FormUpApp(viewModel: FormUpViewModel = viewModel()) {
             StatsInputScreen(
                 state = inputState,
                 onBack = { viewModel.back() },
-                onCustomizeColumns = {
-                    viewModel.notify("Column customization coming soon")
-                },
+                onCustomizeColumns = { viewModel.notify("Column customization coming soon") },
                 onCancel = { viewModel.back() },
+                onSelectFixture = { newId -> viewModel.navigate(Destination.StatsInput(newId)) },  // NEW
                 onSave = { playerRows, homeScore, awayScore ->
-                    viewModel.saveMatchStats(
-                        screen.fixtureId,
-                        playerRows,
-                        homeScore,
-                        awayScore
-                    )
+                    viewModel.saveMatchStats(screen.fixtureId, playerRows, homeScore, awayScore)
                 },
                 onNotifications = openNotifications,
                 onSelectTab = selectTab
@@ -347,18 +342,19 @@ private fun FormUpApp(viewModel: FormUpViewModel = viewModel()) {
             state = viewModel.calendarState,
             onPreviousMonth = viewModel::previousCalendarMonth,
             onNextMonth = viewModel::nextCalendarMonth,
-            onManageTrainingOrLineup = {
-                viewModel.nextFixture?.let { viewModel.navigate(Destination.Lineup(it.id)) }
-                    ?: viewModel.notify("No upcoming fixture")
-            },
-            onViewMatchDetails = { event ->
-                viewModel.navigate(Destination.MatchDetails(event.id))
-            },
-            onViewTeamAttendance = { event ->
-                viewModel.navigate(Destination.Attendance(event.id))
-            },
+            onManageTrainingOrLineup = { viewModel.navigate(Destination.ManageEvent) },   // was routing to Lineup
+            onViewMatchDetails = { event -> viewModel.navigate(Destination.MatchDetails(event.id)) },
+            onViewTeamAttendance = { event -> viewModel.navigate(Destination.Attendance(event.id)) },
             onNotifications = openNotifications,
             onSelectTab = selectTab
+        )
+
+        Destination.ManageEvent -> ManageEventScreen(
+            onBack = { viewModel.back() },
+            onEventCreated = {
+                viewModel.refreshFromApi()   // pulls the new match back in; sessions won't show yet, see note below
+                viewModel.back()
+            }
         )
 
         Destination.Team -> TeamScreen(
@@ -379,13 +375,16 @@ private fun FormUpApp(viewModel: FormUpViewModel = viewModel()) {
             onBack = { viewModel.back() }
         )
 
-        is Destination.Attendance -> AttendanceScreen(
-            state = viewModel.attendanceState(screen.fixtureId),
-            onBack = { viewModel.back() },
-            onEditEvent = { viewModel.navigate(Destination.Lineup(screen.fixtureId)) },
-            onNudgeAllNoReplies = viewModel::markAllAttendancePresent,
-            onRowAction = { entry -> viewModel.markAttendancePresent(entry.id) }
-        )
+        is Destination.Attendance -> {
+            LaunchedEffect(screen.fixtureId) { viewModel.loadMatchAttendance(screen.fixtureId) }
+            AttendanceScreen(
+                state = viewModel.attendanceState(screen.fixtureId),
+                onBack = { viewModel.back() },
+                onEditEvent = { viewModel.navigate(Destination.Lineup(screen.fixtureId)) },
+                onNudgeAllNoReplies = { viewModel.markAllPresent(screen.fixtureId) },
+                onRowAction = { entry -> viewModel.setMatchAttendance(screen.fixtureId, entry.id, "Present") }
+            )
+        }
 
         is Destination.Lineup -> LineupSelectionScreen(
             opponent = viewModel.fixture(screen.fixtureId)?.opponent ?: "Opponent",

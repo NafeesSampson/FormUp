@@ -88,7 +88,9 @@ import com.formup.app.ui.team.TeamUiState
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
-
+import com.formup.app.data.AttendanceRecord
+import androidx.compose.runtime.mutableStateMapOf
+import com.formup.app.ui.stats.FixtureOption
 
 class FormUpViewModel : ViewModel() {
 
@@ -100,6 +102,7 @@ class FormUpViewModel : ViewModel() {
     private val notificationList = mutableStateListOf<AppNotification>()
     private val updateList = mutableStateListOf<TeamUpdateItem>()
     private val activityList = mutableStateListOf<ActivityEntry>()
+    private val attendanceCache = mutableStateMapOf<String, Map<String, String>>()
 
     var coach by mutableStateOf(CoachProfile("", "Coach", emptyList(), "en", false, false))
         private set
@@ -298,19 +301,21 @@ class FormUpViewModel : ViewModel() {
 
     fun attendanceState(fixtureId: String): AttendanceUiState {
         val match = fixture(fixtureId)
+        val statuses = attendanceCache[fixtureId] ?: emptyMap()
         val roster = playerList.map { player ->
-            val status = when (player.status) {
-                AvailabilityStatus.Fit -> RosterStatus.ATTENDING
-                AvailabilityStatus.Doubtful -> RosterStatus.NO_REPLY
-                AvailabilityStatus.Out -> RosterStatus.ABSENT
+            val raw = statuses[player.id] ?: "NotRecorded"
+            val status = when (raw) {
+                "Present" -> RosterStatus.ATTENDING
+                "Absent", "AbsentNoExcuse" -> RosterStatus.ABSENT
+                else -> RosterStatus.NO_REPLY
             }
             RosterEntry(
                 id = player.id,
                 name = player.name,
                 subtitle = player.position,
-                statusBadge = if (player.status == AvailabilityStatus.Out) "OUT" else null,
+                statusBadge = if (raw == "AbsentNoExcuse") "NO EXCUSE" else null,
                 status = status,
-                action = if (status == RosterStatus.NO_REPLY) RosterRowAction.MARK_PRESENT else RosterRowAction.NONE
+                action = if (status != RosterStatus.ATTENDING) RosterRowAction.MARK_PRESENT else RosterRowAction.NONE
             )
         }
         return AttendanceUiState(
@@ -322,6 +327,44 @@ class FormUpViewModel : ViewModel() {
             noReplyCount = roster.count { it.status == RosterStatus.NO_REPLY },
             roster = roster
         )
+    }
+
+    fun loadMatchAttendance(fixtureId: String) {
+        viewModelScope.launch {
+            runCatching { api.getAttendance(fixtureId) }
+                .onSuccess { records ->
+                    attendanceCache[fixtureId] = records
+                        .filter { it.status != "NotRecorded" }
+                        .associate { it.playerId to it.status }
+                }
+                .onFailure { notify(it.message ?: "Could not load attendance") }
+        }
+    }
+
+    fun setMatchAttendance(fixtureId: String, playerId: String, status: String) {
+        val updated = (attendanceCache[fixtureId] ?: emptyMap()) + (playerId to status)
+        attendanceCache[fixtureId] = updated
+        viewModelScope.launch {
+            runCatching {
+                api.saveAttendance(fixtureId, updated.map { (pid, st) -> AttendanceRecord(pid, st) })
+            }.onFailure { notify(it.message ?: "Could not save attendance") }
+        }
+        notify("${player(playerId)?.name ?: "Player"} marked ${status.lowercase()}")
+    }
+
+    fun markAllPresent(fixtureId: String) {
+        val toMark = attendanceState(fixtureId).roster
+            .filter { it.action == RosterRowAction.MARK_PRESENT }
+            .map { it.id }
+        if (toMark.isEmpty()) return
+        val updated = (attendanceCache[fixtureId] ?: emptyMap()) + toMark.associateWith { "Present" }
+        attendanceCache[fixtureId] = updated
+        viewModelScope.launch {
+            runCatching {
+                api.saveAttendance(fixtureId, updated.map { (pid, st) -> AttendanceRecord(pid, st) })
+            }.onFailure { notify(it.message ?: "Could not save attendance") }
+        }
+        notify("All no-replies marked present")
     }
 
     fun markAttendancePresent(playerId: String) {
@@ -454,8 +497,8 @@ class FormUpViewModel : ViewModel() {
                             goals = entry?.goals ?: line?.goals ?: 0,
                             assists = entry?.assists ?: line?.assists ?: 0,
                             cleansheet = opponentScore == 0,
-                            minutesPlayed = line?.minutes ?: 0,
-                            rating = 0.0
+                            minutesPlayed = entry?.minutesPlayed ?: line?.minutes ?: 0,
+                            rating = entry?.rating ?: line?.rating ?: 0.0
                         )
                     }
                 )
@@ -812,6 +855,7 @@ class FormUpViewModel : ViewModel() {
 
     fun statsInputState(fixtureId: String): StatsInputUiState {
         val match = fixture(fixtureId) ?: fixtureList.firstOrNull() ?: return StatsInputUiState(
+            fixtureId = fixtureId,
             resultBadge = "NO MATCHES",
             matchDate = "—",
             opponent = "—",
@@ -820,9 +864,11 @@ class FormUpViewModel : ViewModel() {
             awayLabel = "—",
             homeScore = 0,
             awayScore = 0,
+            availableFixtures = emptyList(),
             players = emptyList()
         )
         return StatsInputUiState(
+            fixtureId = match.id,
             resultBadge = if (match.played) "FT ${match.scoreLine} (${match.resultLetter})" else "NOT PLAYED",
             matchDate = "${match.dateLabel}, ${team.season.take(4)}",
             opponent = "vs. ${match.opponent}",
@@ -831,6 +877,9 @@ class FormUpViewModel : ViewModel() {
             awayLabel = match.opponent.uppercase(),
             homeScore = match.teamScore,
             awayScore = match.opponentScore,
+            availableFixtures = fixtureList.map {
+                FixtureOption(it.id, "${it.opponent} • ${it.dateLabel}")
+            },
             players = playerList.map { player ->
                 val line = match.playerStats[player.id]
                 PlayerStatEntry(
@@ -840,6 +889,8 @@ class FormUpViewModel : ViewModel() {
                     position = player.position,
                     goals = line?.goals ?: 0,
                     assists = line?.assists ?: 0,
+                    minutesPlayed = line?.minutes ?: 0,   // NEW
+                    rating = line?.rating ?: 0.0,         // NEW
                     badgeColor = if (player.inLineup) FormUpColors.Primary else FormUpColors.NavIndicator,
                     badgeTextColor = if (player.inLineup) FormUpColors.Surface else FormUpColors.TextPrimary
                 )

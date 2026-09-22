@@ -9,7 +9,8 @@ enum class AvailabilityStatus(val label: String) {
 data class MatchLine(
     val goals: Int = 0,
     val assists: Int = 0,
-    val minutes: Int = 0
+    val minutes: Int = 0,
+    val rating: Double = 0.0
 )
 
 data class Player(
