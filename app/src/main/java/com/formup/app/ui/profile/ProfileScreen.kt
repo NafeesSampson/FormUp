@@ -19,12 +19,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -59,6 +59,7 @@ import com.formup.app.ui.theme.FormUpColors
 import com.formup.app.ui.theme.FormUpTheme
 import com.formup.app.ui.theme.Mono
 
+// Main profile and settings screen
 @Composable
 fun ProfileScreen(
     state: ProfileUiState = SampleProfileState,
@@ -94,6 +95,7 @@ fun ProfileScreen(
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
+            // Coach profile header
             item {
                 ProfileHeaderCard(
                     name = state.name,
@@ -103,6 +105,7 @@ fun ProfileScreen(
                 )
             }
 
+            // Season summary tiles (2-column grid layout)
             item { SectionHeading("Season Stats") }
 
             item {
@@ -121,6 +124,7 @@ fun ProfileScreen(
                 }
             }
 
+            // Recent activity log
             item { SectionHeading("Recent Activity") }
 
             item {
@@ -140,6 +144,7 @@ fun ProfileScreen(
                 }
             }
 
+            // App settings and notifications preferences
             item { SectionHeading("Preferences") }
 
             item {
@@ -169,12 +174,14 @@ fun ProfileScreen(
                 }
             }
 
+            // Team metadata card
             item { SectionHeading("Team Information") }
 
             item {
                 TeamInfoCard(info = state.teamInfo, onEdit = onEditTeamInfo)
             }
 
+            // Sign out action
             item {
                 OutlinedButton(
                     onClick = onSignOut,
@@ -186,7 +193,7 @@ fun ProfileScreen(
                     border = BorderStroke(1.dp, FormUpColors.Hairline)
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.Logout,
+                        imageVector = Icons.AutoMirrored.Filled.Logout,
                         contentDescription = null,
                         tint = FormUpColors.Danger,
                         modifier = Modifier.size(16.dp)
@@ -215,6 +222,7 @@ private fun SectionHeading(text: String) {
     )
 }
 
+// Coach avatar, title, role badges, and edit button
 @Composable
 private fun ProfileHeaderCard(
     name: String,
@@ -309,6 +317,7 @@ private fun ProfileHeaderCard(
     }
 }
 
+// Single metric card used in season stats grid
 @Composable
 private fun StatTile(stat: SeasonStat, modifier: Modifier = Modifier) {
     SectionCard(modifier = modifier, contentPadding = PaddingValues(14.dp)) {
@@ -341,6 +350,7 @@ private fun StatTile(stat: SeasonStat, modifier: Modifier = Modifier) {
     }
 }
 
+// Item row showing recent match/training event activity
 @Composable
 private fun ActivityRow(activity: ActivityItem) {
     val bubbleColor = when (activity.tone) {
@@ -391,6 +401,7 @@ private fun ActivityRow(activity: ActivityItem) {
     }
 }
 
+// Dropdown picker for selecting the active app language
 @Composable
 private fun LanguageSelector(
     selected: LanguageOption,
@@ -472,6 +483,7 @@ private fun LanguageSelector(
     }
 }
 
+// Preference toggle row with a title, subtitle, and switch control
 @Composable
 private fun ToggleRow(
     title: String,
@@ -513,6 +525,7 @@ private fun ToggleRow(
     }
 }
 
+// Summary card displaying team details (home ground, squad, club code)
 @Composable
 private fun TeamInfoCard(info: TeamInfo, onEdit: () -> Unit) {
     SectionCard(modifier = Modifier.fillMaxWidth()) {

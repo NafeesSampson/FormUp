@@ -9,8 +9,7 @@ import androidx.compose.ui.unit.sp
 /**
  * The mockup pairs a plain sans for headings and prose with a monospace face
  * for anything that reads as data: kickoff times, button labels, tab labels,
- * legend counts. Swap [Display] for a bundled font family if you add one later.
- */
+  */
 val Display: FontFamily = FontFamily.SansSerif
 val Mono: FontFamily = FontFamily.Monospace
 

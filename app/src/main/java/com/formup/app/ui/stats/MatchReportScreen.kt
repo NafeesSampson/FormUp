@@ -1,6 +1,5 @@
 package com.formup.app.ui.stats
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -53,6 +52,7 @@ import com.formup.app.ui.theme.FormUpColors
 import com.formup.app.ui.theme.FormUpTheme
 import com.formup.app.ui.theme.Mono
 
+// Screen displaying full post-match analysis, team stats, and player ratings
 @Composable
 fun MatchReportScreen(
     state: MatchReportUiState = SampleMatchReportState,
@@ -134,6 +134,7 @@ private fun SectionHeader(icon: androidx.compose.ui.graphics.vector.ImageVector,
     }
 }
 
+// Header banner displaying final match score and team badges
 @Composable
 private fun MatchScoreHeader(statusLine: String, away: TeamScoreInfo, home: TeamScoreInfo) {
     Column(
@@ -207,6 +208,7 @@ private fun TeamBadge(team: TeamScoreInfo, modifier: Modifier = Modifier) {
     }
 }
 
+// Summary paragraph explaining the overall match storyline
 @Composable
 private fun OverviewCard(overview: String) {
     SectionCard(modifier = Modifier.fillMaxWidth()) {
@@ -220,6 +222,7 @@ private fun OverviewCard(overview: String) {
     }
 }
 
+// Bulleted tactical highlights and observations from coaching staff
 @Composable
 private fun TacticalNotesCard(notes: List<TacticalNote>) {
     SectionCard(modifier = Modifier.fillMaxWidth()) {
@@ -247,6 +250,7 @@ private fun TacticalNotesCard(notes: List<TacticalNote>) {
     }
 }
 
+// Chronological log of key events (goals, cards, subs)
 @Composable
 private fun TimelineCard(events: List<TimelineEvent>) {
     SectionCard(modifier = Modifier.fillMaxWidth()) {
@@ -287,6 +291,7 @@ private fun TimelineCard(events: List<TimelineEvent>) {
     }
 }
 
+// Side-by-side comparative team statistics
 @Composable
 private fun TeamStatsCard(stats: List<DualStat>) {
     SectionCard(modifier = Modifier.fillMaxWidth()) {
@@ -328,6 +333,7 @@ private fun TeamStatsCard(stats: List<DualStat>) {
     }
 }
 
+// Individual performance score badge and match metrics
 @Composable
 private fun MyPerformanceCard(performance: PerformanceSummary) {
     SectionCard(modifier = Modifier.fillMaxWidth()) {
@@ -400,6 +406,7 @@ private fun PerformanceMetric(label: String, value: String, modifier: Modifier =
     }
 }
 
+// Squad player ratings and match highlights list
 @Composable
 private fun RatingsCard(ratings: List<PlayerRating>) {
     SectionCard(modifier = Modifier.fillMaxWidth()) {

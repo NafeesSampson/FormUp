@@ -9,12 +9,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.formup.app.ui.theme.FormUpColors
 
-/** Visual grouping the notification feed is split into. */
+// Feed section categories for grouping notifications
 enum class NotificationGroup(val label: String) {
     New("NEW"),
     Earlier("EARLIER")
 }
 
+// Data model for an individual notification item
 data class NotificationItem(
     val id: String,
     val icon: ImageVector,
@@ -24,10 +25,10 @@ data class NotificationItem(
     val timestamp: String,
     val body: String,
     val group: NotificationGroup,
-    /** Optional inline call-to-action, e.g. "RSVP Now". Null when there's nothing to action. */
-    val actionLabel: String? = null
+    val actionLabel: String? = null // Optional button text (e.g. "RSVP Now")
 )
 
+// UI state holding the notification feed
 data class NotificationsUiState(
     val items: List<NotificationItem>
 ) {
@@ -35,7 +36,7 @@ data class NotificationsUiState(
         get() = items.groupBy { it.group }
 }
 
-/** Static placeholder content matching the design mockup. */
+// Mock notification data for previews and testing
 val SampleNotificationsState = NotificationsUiState(
     items = listOf(
         NotificationItem(
