@@ -18,11 +18,4 @@ data class TeamUiState(
     val out: Int get() = players.count { it.status == PlayerStatus.OUT }
 }
 
-/** Static placeholder content, same convention as SampleNotificationsState. */
-val SampleTeamState = TeamUiState(
-    players = listOf(
-        SquadPlayer("1", "Alex Rivera", "Midfielder", PlayerStatus.FIT),
-        SquadPlayer("2", "Sarah Jenkins", "Defender", PlayerStatus.FIT),
-        SquadPlayer("3", "Marcus Thorne", "Forward", PlayerStatus.DOUBT)
-    )
-)
+val SampleTeamState = TeamUiState()

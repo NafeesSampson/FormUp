@@ -100,6 +100,52 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
         )
     }
 
+    suspend fun getAttendance(
+        matchId: String
+    ): List<AttendanceRecord> = withContext(Dispatchers.IO) {
+
+        val response = request(
+            method = "GET",
+            path = "/api/match/$matchId/attendance"
+        )
+
+        val array = JSONArray(response)
+
+        buildList {
+            for (index in 0 until array.length()) {
+                val item = array.getJSONObject(index)
+
+                add(
+                    AttendanceRecord(
+                        playerId = item.optString("playerId"),
+                        status = item.optString("status", "NoReply")
+                    )
+                )
+            }
+        }
+    }
+
+    suspend fun saveAttendance(
+        matchId: String,
+        attendance: List<AttendanceRecord>
+    ) {
+        val array = JSONArray()
+
+        attendance.forEach { record ->
+            array.put(
+                JSONObject()
+                    .put("playerId", record.playerId)
+                    .put("status", record.status)
+            )
+        }
+
+        request(
+            method = "PUT",
+            path = "/api/match/$matchId/attendance",
+            body = array
+        )
+    }
+
     suspend fun saveStats(
         matchId: String,
         stats: List<StatUpdate>
@@ -284,6 +330,10 @@ data class SquadUpdate(
     val selection: String
 )
 
+data class AttendanceRecord(
+    val playerId: String,
+    val status: String
+)
 data class StatUpdate(
     val playerId: String,
     val goals: Int,

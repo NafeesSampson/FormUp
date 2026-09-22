@@ -2,47 +2,78 @@ package com.formup.app
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.formup.app.data.AvailabilityStatus
 import com.formup.app.ui.FormUpViewModel
 import com.formup.app.ui.auth.AccountRole
+import com.formup.app.ui.auth.CreateTeamScreen
 import com.formup.app.ui.auth.LoginScreen
-import com.formup.app.ui.auth.SignUpScreen
 import com.formup.app.ui.auth.NewAccount
-import com.google.firebase.auth.FirebaseAuth
+import com.formup.app.ui.auth.SignUpScreen
+import com.formup.app.ui.auth.emailSignIn
+import com.formup.app.ui.auth.emailSignUp
+import com.formup.app.ui.auth.googleSignIn
+import com.com.formup.app.ui.calendar.AttendanceScreen
+import com.formup.app.ui.calendar.CalendarScreen
+import com.formup.app.ui.calendar.MatchDetailsScreen
 import com.formup.app.ui.home.HomeScreen
 import com.formup.app.ui.home.components.FormUpBottomBar
 import com.formup.app.ui.home.components.FormUpTopBar
 import com.formup.app.ui.home.components.HomeTab
 import com.formup.app.ui.invite.InvitePlayerScreen
 import com.formup.app.ui.invite.InvitePlayerUiState
-import androidx.compose.ui.unit.dp
 import com.formup.app.ui.navigation.Destination
 import com.formup.app.ui.notifications.NotificationsScreen
 import com.formup.app.ui.profile.EditProfileScreen
@@ -50,18 +81,13 @@ import com.formup.app.ui.profile.ProfileScreen
 import com.formup.app.ui.stats.MatchReportScreen
 import com.formup.app.ui.stats.StatsInputScreen
 import com.formup.app.ui.stats.StatsScreen
+import com.formup.app.ui.team.AddPlayerScreen
+import com.formup.app.ui.team.TeamScreen
 import com.formup.app.ui.theme.FormUpColors
 import com.formup.app.ui.theme.FormUpTheme
-import android.util.Log
-import android.widget.Toast
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.credentials.exceptions.GetCredentialCancellationException
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
-import com.formup.app.ui.auth.CreateTeamScreen
-import emailSignIn
-import emailSignUp
-import googleSignIn
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -317,46 +343,136 @@ private fun FormUpApp(viewModel: FormUpViewModel = viewModel()) {
             onSelectTab = selectTab
         )
 
-        Destination.Calendar, Destination.Team, is Destination.MatchDetails, is Destination.Attendance, is Destination.Lineup -> {
-            Scaffold(
-                containerColor = FormUpColors.Background,
-                topBar = {
-                    FormUpTopBar(hasUnread = hasUnread, onNotifications = openNotifications)
-                },
-                bottomBar = {
-                    FormUpBottomBar(selected = viewModel.currentTab, onSelect = selectTab)
-                }
-            ) { innerPadding ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        val screenName = when (screen) {
-                            Destination.Calendar -> "Calendar"
-                            Destination.Team -> "Team"
-                            is Destination.MatchDetails -> "Match Details"
-                            is Destination.Attendance -> "Attendance"
-                            is Destination.Lineup -> "Lineup"
-                            else -> "Screen"
-                        }
-                        Text(
-                            text = "$screenName Coming Soon",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = FormUpColors.TextPrimary
-                        )
-                        if (viewModel.canGoBack) {
-                            Spacer(Modifier.height(16.dp))
-                            Button(
-                                onClick = { viewModel.back() },
-                                colors = ButtonDefaults.buttonColors(containerColor = FormUpColors.Primary)
-                            ) {
-                                Text("Go Back", color = FormUpColors.Surface)
-                            }
-                        }
+        Destination.Calendar -> CalendarScreen(
+            state = viewModel.calendarState,
+            onPreviousMonth = viewModel::previousCalendarMonth,
+            onNextMonth = viewModel::nextCalendarMonth,
+            onManageTrainingOrLineup = {
+                viewModel.nextFixture?.let { viewModel.navigate(Destination.Lineup(it.id)) }
+                    ?: viewModel.notify("No upcoming fixture")
+            },
+            onViewMatchDetails = { event ->
+                viewModel.navigate(Destination.MatchDetails(event.id))
+            },
+            onViewTeamAttendance = { event ->
+                viewModel.navigate(Destination.Attendance(event.id))
+            },
+            onNotifications = openNotifications,
+            onSelectTab = selectTab
+        )
+
+        Destination.Team -> TeamScreen(
+            state = viewModel.teamState,
+            onNotifications = openNotifications,
+            onAddPlayer = { viewModel.navigate(Destination.AddPlayer) },
+            onExport = viewModel::exportStats,
+            onSelectTab = selectTab
+        )
+
+        Destination.AddPlayer -> AddPlayerScreen(
+            onBack = { viewModel.back() },
+            onSave = viewModel::addPlayer
+        )
+
+        is Destination.MatchDetails -> MatchDetailsScreen(
+            state = viewModel.matchDetailsState(screen.fixtureId),
+            onBack = { viewModel.back() }
+        )
+
+        is Destination.Attendance -> AttendanceScreen(
+            state = viewModel.attendanceState(screen.fixtureId),
+            onBack = { viewModel.back() },
+            onEditEvent = { viewModel.navigate(Destination.Lineup(screen.fixtureId)) },
+            onNudgeAllNoReplies = viewModel::markAllAttendancePresent,
+            onRowAction = { entry -> viewModel.markAttendancePresent(entry.id) }
+        )
+
+        is Destination.Lineup -> LineupSelectionScreen(
+            opponent = viewModel.fixture(screen.fixtureId)?.opponent ?: "Opponent",
+            players = viewModel.players,
+            selectedCount = viewModel.lineupCount,
+            onBack = { viewModel.back() },
+            onToggle = viewModel::toggleLineup,
+            onMarkAllFit = viewModel::markAllFit,
+            onClear = viewModel::clearLineup,
+            onSave = viewModel::saveLineup
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LineupSelectionScreen(
+    opponent: String,
+    players: List<com.formup.app.data.Player>,
+    selectedCount: Int,
+    onBack: () -> Unit,
+    onToggle: (String) -> Unit,
+    onMarkAllFit: () -> Unit,
+    onClear: () -> Unit,
+    onSave: () -> Unit
+) {
+    Scaffold(
+        containerColor = FormUpColors.Background,
+        topBar = {
+            TopAppBar(
+                title = { Text("Lineup vs. $opponent", color = FormUpColors.TextPrimary) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = FormUpColors.TextPrimary)
                     }
+                }
+            )
+        }
+    ) { inner ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(inner),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            item {
+                Text("Starting XI", style = MaterialTheme.typography.headlineMedium, color = FormUpColors.TextPrimary)
+                Text("$selectedCount / 11 selected", color = FormUpColors.TextSecondary)
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onClick = onMarkAllFit, modifier = Modifier.weight(1f)) { Text("Mark All Fit") }
+                    OutlinedButton(onClick = onClear, modifier = Modifier.weight(1f)) { Text("Clear") }
+                }
+            }
+
+            items(players, key = { it.id }) { player ->
+                Surface(
+                    modifier = Modifier.fillMaxSize().clickable(enabled = player.status != AvailabilityStatus.Out) { onToggle(player.id) },
+                    shape = RoundedCornerShape(12.dp),
+                    color = FormUpColors.Surface,
+                    border = BorderStroke(1.dp, if (player.inLineup) FormUpColors.Primary else FormUpColors.Hairline)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text(player.name, fontWeight = FontWeight.SemiBold, color = FormUpColors.TextPrimary)
+                            Text("${player.position} • ${player.status.label}", fontSize = 12.sp, color = FormUpColors.TextSecondary)
+                        }
+                        Icon(
+                            if (player.inLineup) Icons.Filled.CheckCircle else Icons.Filled.RadioButtonUnchecked,
+                            contentDescription = null,
+                            tint = if (player.inLineup) FormUpColors.Primary else FormUpColors.TextSecondary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+            }
+
+            item {
+                Button(
+                    onClick = onSave,
+                    enabled = selectedCount == 11,
+                    colors = ButtonDefaults.buttonColors(containerColor = FormUpColors.Primary),
+                    modifier = Modifier.fillMaxSize().height(52.dp)
+                ) {
+                    Text(if (selectedCount == 11) "Save Starting XI" else "Select ${11 - selectedCount} More")
                 }
             }
         }
