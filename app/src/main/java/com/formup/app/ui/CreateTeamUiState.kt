@@ -11,7 +11,7 @@ data class TeamFormState(
     val levelError: String? = null
 )
 
-val SportOptions = listOf("Soccer", "Basketball", "Rugby", "Netball", "Hockey", "Cricket")
+val SportOptions = listOf("Soccer")
 
 val AgeGroupLevelOptions = listOf(
     "Youth (U10)", "Youth (U12)", "Youth (U14)", "Youth (U16)", "Youth (U18)",

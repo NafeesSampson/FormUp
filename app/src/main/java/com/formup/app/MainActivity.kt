@@ -65,7 +65,7 @@ import com.formup.app.ui.auth.SignUpScreen
 import com.formup.app.ui.auth.emailSignIn
 import com.formup.app.ui.auth.emailSignUp
 import com.formup.app.ui.auth.googleSignIn
-import com.com.formup.app.ui.calendar.AttendanceScreen
+import com.formup.app.ui.calendar.AttendanceScreen
 import com.formup.app.ui.calendar.CalendarScreen
 import com.formup.app.ui.calendar.MatchDetailsScreen
 import com.formup.app.ui.home.HomeScreen
