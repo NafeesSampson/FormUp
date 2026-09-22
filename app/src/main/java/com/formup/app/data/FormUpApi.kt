@@ -78,6 +78,32 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
         )
     }
 
+    suspend fun getSquad(
+        matchId: String
+    ): List<SquadUpdate> = withContext(Dispatchers.IO) {
+
+        val response = request(
+            method = "GET",
+            path = "/api/match/$matchId/squad"
+        )
+
+        val array = JSONArray(response)
+
+        buildList {
+            for (index in 0 until array.length()) {
+                val item = array.getJSONObject(index)
+
+                add(
+                    SquadUpdate(
+                        playerId = item.optString("playerId"),
+                        status = item.optString("status", "Available"),
+                        selection = item.optString("selection", "NotSelected")
+                    )
+                )
+            }
+        }
+    }
+
     suspend fun saveSquad(
         matchId: String,
         players: List<SquadUpdate>
@@ -128,7 +154,7 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
     suspend fun saveAttendance(
         matchId: String,
         attendance: List<AttendanceRecord>
-    ) =withContext(Dispatchers.IO){
+    ) = withContext(Dispatchers.IO) {
         val array = JSONArray()
 
         attendance.forEach { record ->
@@ -240,7 +266,7 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
         )
     }
 
-    suspend fun deletePlayer(id: String) = withContext(Dispatchers.IO){
+    suspend fun deletePlayer(id: String) = withContext(Dispatchers.IO) {
         request(
             method = "DELETE",
             path = "/api/players/$id"
@@ -272,7 +298,6 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
         val response = request(method = "POST", path = "/api/session", body = body)
         JSONObject(response).optString("id")
     }
-
 
     private fun getObject(path: String): JSONObject {
         return JSONObject(
@@ -408,6 +433,7 @@ data class AttendanceRecord(
     val playerId: String,
     val status: String
 )
+
 data class StatUpdate(
     val playerId: String,
     val goals: Int,

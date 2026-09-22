@@ -1,9 +1,8 @@
 package com.formup.app.ui.calendar
 
-import android.widget.Toast
-import androidx.compose.foundation.BorderStroke
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,19 +10,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -34,7 +31,10 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimeInput
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,9 +42,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -54,10 +53,15 @@ import com.formup.app.data.FormUpApi
 import com.formup.app.ui.home.components.SectionCard
 import com.formup.app.ui.theme.FormUpColors
 import com.formup.app.ui.theme.FormUpTheme
-import com.formup.app.ui.theme.Mono
 import kotlinx.coroutines.launch
-import java.util.UUID
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ManageEventScreen(
@@ -66,95 +70,150 @@ fun ManageEventScreen(
     modifier: Modifier = Modifier
 ) {
     var kind by remember { mutableStateOf(EventKind.TRAINING) }
-    var trainingForm by remember { mutableStateOf(TrainingFormState()) }
-    var lineupForm by remember { mutableStateOf(LineupFormState()) }
+
+    var trainingForm by remember {
+        mutableStateOf(TrainingFormState())
+    }
+
+    var matchForm by remember {
+        mutableStateOf(MatchFormState())
+    }
+
+    var showDatePicker by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
+
     var saving by remember { mutableStateOf(false) }
+
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
     fun createTraining() {
-        val titleError = if (trainingForm.title.isBlank()) "Give the session a name" else null
-        val dateError = if (trainingForm.date.isBlank()) "Enter a date" else null
-        if (titleError != null || dateError != null) {
-            trainingForm = trainingForm.copy(titleError = titleError, dateError = dateError)
+        val dateError =
+            if (trainingForm.date.isBlank()) {
+                "Select a session date"
+            } else {
+                null
+            }
+
+        if (dateError != null) {
+            trainingForm = trainingForm.copy(dateError = dateError)
             return
         }
-        val isoDate = toIsoUtc(trainingForm.date, trainingForm.startTime)
+
+        if (trainingForm.time.isBlank()) {
+            return
+        }
+
+        val isoDate = createIsoDateTime(
+            trainingForm.date,
+            trainingForm.time
+        )
+
         if (isoDate == null) {
-            trainingForm = trainingForm.copy(dateError = "Enter a valid date (MM/DD/YYYY)")
+            trainingForm = trainingForm.copy(
+                dateError = "Invalid date or time"
+            )
             return
         }
+
         if (saving) return
+
         saving = true
+
         scope.launch {
             try {
-                val notes = "${trainingForm.title.trim()} — ${trainingForm.location.trim()}".trimEnd(' ', '—')
-                val createdId = FormUpApi().createSession(isoDate, notes)
-
-                val timeRange = when {
-                    trainingForm.startTime.isNotBlank() && trainingForm.endTime.isNotBlank() -> "${trainingForm.startTime} - ${trainingForm.endTime}"
-                    trainingForm.startTime.isNotBlank() -> trainingForm.startTime
-                    else -> "Time TBC"
-                }
+                val createdId = FormUpApi().createSession(
+                    sessionDateIso = isoDate,
+                    notes = trainingForm.notes.trim().ifBlank { null }
+                )
 
                 onEventCreated(
                     CalendarEvent.Training(
                         id = createdId,
-                        title = trainingForm.title.trim(),
-                        timeRange = timeRange,
-                        location = trainingForm.location.trim()
+                        title = "Training Session",
+                        timeRange = trainingForm.time,
+                        location = ""
                     )
                 )
             } catch (e: Exception) {
-                Toast.makeText(context, e.message ?: "Could not create training session", Toast.LENGTH_LONG).show()
+                android.widget.Toast.makeText(
+                    context,
+                    e.message ?: "Could not create training session",
+                    android.widget.Toast.LENGTH_LONG
+                ).show()
             } finally {
                 saving = false
             }
         }
     }
 
-    fun createLineup() {
-        val opponentError = if (lineupForm.opponent.isBlank()) "Enter the opponent" else null
-        val dateError = if (lineupForm.date.isBlank()) "Enter a date" else null
+    fun createMatch() {
+        val opponentError =
+            if (matchForm.opponent.isBlank()) {
+                "Enter the opponent"
+            } else {
+                null
+            }
+
+        val dateError =
+            if (matchForm.date.isBlank()) {
+                "Select a match date"
+            } else {
+                null
+            }
+
         if (opponentError != null || dateError != null) {
-            lineupForm = lineupForm.copy(opponentError = opponentError, dateError = dateError)
+            matchForm = matchForm.copy(
+                opponentError = opponentError,
+                dateError = dateError
+            )
             return
         }
-        val isoDate = toIsoUtc(lineupForm.date, lineupForm.kickoffTime)
+
+        if (matchForm.time.isBlank()) {
+            return
+        }
+
+        val isoDate = createIsoDateTime(
+            matchForm.date,
+            matchForm.time
+        )
+
         if (isoDate == null) {
-            lineupForm = lineupForm.copy(dateError = "Enter a valid date (MM/DD/YYYY)")
+            matchForm = matchForm.copy(
+                dateError = "Invalid date or time"
+            )
             return
         }
+
         if (saving) return
+
         saving = true
+
         scope.launch {
             try {
-                // Must pass exactly "Home" or "Away" for the API venue parameter
-                val venueParam = if (lineupForm.isHome) "Home" else "Away"
                 val createdId = FormUpApi().createMatch(
-                    opponent = lineupForm.opponent.trim(),
+                    opponent = matchForm.opponent.trim(),
                     matchDateIso = isoDate,
-                    venue = venueParam
+                    venue = matchForm.venue
                 )
-
-                val timeText = buildString {
-                    append(lineupForm.kickoffTime.ifBlank { "Time TBC" })
-                    append(" Kickoff")
-                    if (lineupForm.arrivalTime.isNotBlank()) append(" (Arrive ${lineupForm.arrivalTime})")
-                }
 
                 onEventCreated(
                     CalendarEvent.Match(
                         id = createdId,
-                        opponent = lineupForm.opponent.trim(),
-                        dateLabel = formatDateLabel(lineupForm.date),
-                        timeText = timeText,
-                        location = lineupForm.location.trim(),
-                        formation = lineupForm.formation.label
+                        opponent = matchForm.opponent.trim(),
+                        dateLabel = matchForm.date,
+                        timeText = matchForm.time,
+                        location = matchForm.venue,
+                        formation = null
                     )
                 )
             } catch (e: Exception) {
-                Toast.makeText(context, e.message ?: "Could not create match", Toast.LENGTH_LONG).show()
+                android.widget.Toast.makeText(
+                    context,
+                    e.message ?: "Could not create match",
+                    android.widget.Toast.LENGTH_LONG
+                ).show()
             } finally {
                 saving = false
             }
@@ -165,116 +224,303 @@ fun ManageEventScreen(
         modifier = modifier.fillMaxSize(),
         containerColor = FormUpColors.Background,
         topBar = {
-            TopAppBar(
-                title = { Text("Manage Training or Match", style = MaterialTheme.typography.titleMedium, color = FormUpColors.TextPrimary) },
+            androidx.compose.material3.TopAppBar(
+                title = {
+                    Text(
+                        "Create Event",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = FormUpColors.TextPrimary
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = FormUpColors.TextPrimary)
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = FormUpColors.TextPrimary
+                        )
                     }
                 }
             )
         }
-    ) { inner ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(inner),
-            contentPadding = PaddingValues(16.dp),
+    ) { innerPadding ->
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            item { EventTypeToggle(selected = kind, onSelect = { kind = it }) }
+
+            EventTypeToggle(
+                selected = kind,
+                onSelect = {
+                    kind = it
+                    showDatePicker = false
+                    showTimePicker = false
+                }
+            )
 
             when (kind) {
-                EventKind.TRAINING -> item {
-                    SectionCard(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(18.dp)) {
-                        FieldLabel("Session Name")
-                        FormField(trainingForm.title, { trainingForm = trainingForm.copy(title = it, titleError = null) }, "e.g., Tactical Training", trainingForm.titleError)
+                EventKind.MATCH -> {
+                    SectionCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(18.dp)
+                    ) {
+                        FieldLabel("Opponent")
 
-                        Spacer(Modifier.height(14.dp))
-                        FieldLabel("Date")
-                        FormField(trainingForm.date, { trainingForm = trainingForm.copy(date = it, dateError = null) }, "MM/DD/YYYY", trainingForm.dateError)
+                        FormField(
+                            value = matchForm.opponent,
+                            onValueChange = {
+                                matchForm = matchForm.copy(
+                                    opponent = it,
+                                    opponentError = null
+                                )
+                            },
+                            placeholder = "e.g. Camps Bay FC",
+                            error = matchForm.opponentError
+                        )
 
-                        Spacer(Modifier.height(14.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Column(Modifier.weight(1f)) {
-                                FieldLabel("Start Time")
-                                FormField(trainingForm.startTime, { trainingForm = trainingForm.copy(startTime = it) }, "18:00")
-                            }
-                            Column(Modifier.weight(1f)) {
-                                FieldLabel("End Time")
-                                FormField(trainingForm.endTime, { trainingForm = trainingForm.copy(endTime = it) }, "19:30")
-                            }
+                        Spacer(Modifier.height(16.dp))
+
+                        FieldLabel("Venue")
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            FilterChip(
+                                selected = matchForm.venue == "Home",
+                                onClick = {
+                                    matchForm = matchForm.copy(venue = "Home")
+                                },
+                                label = { Text("Home") },
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            FilterChip(
+                                selected = matchForm.venue == "Away",
+                                onClick = {
+                                    matchForm = matchForm.copy(venue = "Away")
+                                },
+                                label = { Text("Away") },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+
+                        Spacer(Modifier.height(16.dp))
+
+                        FieldLabel("Match Date")
+
+                        DateTimeField(
+                            value = matchForm.date.ifBlank { "Select date" },
+                            onClick = { showDatePicker = true }
+                        )
+
+                        matchForm.dateError?.let {
+                            Text(
+                                text = it,
+                                color = FormUpColors.Danger,
+                                fontSize = 10.sp,
+                                modifier = Modifier.padding(top = 4.dp, start = 2.dp)
+                            )
                         }
 
                         Spacer(Modifier.height(14.dp))
-                        FieldLabel("Location")
-                        FormField(trainingForm.location, { trainingForm = trainingForm.copy(location = it) }, "e.g., Training Pitch 2")
+
+                        FieldLabel("Kickoff Time")
+
+                        DateTimeField(
+                            value = matchForm.time.ifBlank { "Select time" },
+                            onClick = { showTimePicker = true }
+                        )
                     }
                 }
 
-                EventKind.LINEUP -> item {
-                    SectionCard(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(18.dp)) {
-                        FieldLabel("Opponent")
-                        FormField(lineupForm.opponent, { lineupForm = lineupForm.copy(opponent = it, opponentError = null) }, "e.g., Camps Bay FC", lineupForm.opponentError)
+                EventKind.TRAINING -> {
+                    SectionCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(18.dp)
+                    ) {
+                        FieldLabel("Session Date")
 
-                        Spacer(Modifier.height(14.dp))
-                        FieldLabel("Venue Type")
-                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            FilterChip(
-                                selected = lineupForm.isHome,
-                                onClick = { lineupForm = lineupForm.copy(isHome = true) },
-                                label = { Text("Home Match") },
-                                modifier = Modifier.weight(1f)
-                            )
-                            FilterChip(
-                                selected = !lineupForm.isHome,
-                                onClick = { lineupForm = lineupForm.copy(isHome = false) },
-                                label = { Text("Away Match") },
-                                modifier = Modifier.weight(1f)
+                        DateTimeField(
+                            value = trainingForm.date.ifBlank { "Select date" },
+                            onClick = { showDatePicker = true }
+                        )
+
+                        trainingForm.dateError?.let {
+                            Text(
+                                text = it,
+                                color = FormUpColors.Danger,
+                                fontSize = 10.sp,
+                                modifier = Modifier.padding(top = 4.dp, start = 2.dp)
                             )
                         }
 
                         Spacer(Modifier.height(14.dp))
-                        FieldLabel("Date")
-                        FormField(lineupForm.date, { lineupForm = lineupForm.copy(date = it, dateError = null) }, "MM/DD/YYYY", lineupForm.dateError)
+
+                        FieldLabel("Session Time")
+
+                        DateTimeField(
+                            value = trainingForm.time.ifBlank { "Select time" },
+                            onClick = { showTimePicker = true }
+                        )
 
                         Spacer(Modifier.height(14.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Column(Modifier.weight(1f)) {
-                                FieldLabel("Kickoff Time")
-                                FormField(lineupForm.kickoffTime, { lineupForm = lineupForm.copy(kickoffTime = it) }, "14:00")
-                            }
-                            Column(Modifier.weight(1f)) {
-                                FieldLabel("Arrival Time")
-                                FormField(lineupForm.arrivalTime, { lineupForm = lineupForm.copy(arrivalTime = it) }, "13:00")
-                            }
-                        }
 
-                        Spacer(Modifier.height(14.dp))
-                        FieldLabel("Location / Pitch")
-                        FormField(lineupForm.location, { lineupForm = lineupForm.copy(location = it) }, "e.g., Main Stadium Pitch")
+                        FieldLabel("Notes")
+
+                        OutlinedTextField(
+                            value = trainingForm.notes,
+                            onValueChange = {
+                                trainingForm = trainingForm.copy(notes = it)
+                            },
+                            placeholder = {
+                                Text("Optional notes", color = FormUpColors.TextSecondary)
+                            },
+                            minLines = 3,
+                            maxLines = 5,
+                            shape = RoundedCornerShape(10.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = FormUpColors.Surface,
+                                unfocusedContainerColor = FormUpColors.Surface,
+                                focusedBorderColor = FormUpColors.Primary,
+                                unfocusedBorderColor = FormUpColors.Hairline,
+                                cursorColor = FormUpColors.Primary
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
                 }
             }
 
-            item {
-                Button(
-                    onClick = { if (kind == EventKind.TRAINING) createTraining() else createLineup() },
-                    enabled = !saving,
-                    shape = RoundedCornerShape(28.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = FormUpColors.Primary, contentColor = FormUpColors.Surface),
-                    modifier = Modifier.fillMaxWidth().height(52.dp)
-                ) {
-                    Text(
-                        text = if (saving) "Saving..." else if (kind == EventKind.TRAINING) "Create Training" else "Create Match",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
+            Spacer(Modifier.weight(1f))
+
+            Button(
+                onClick = {
+                    if (kind == EventKind.MATCH) {
+                        createMatch()
+                    } else {
+                        createTraining()
+                    }
+                },
+                enabled = !saving,
+                shape = RoundedCornerShape(28.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = FormUpColors.Primary,
+                    contentColor = FormUpColors.Surface
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+            ) {
+                Text(
+                    text = when {
+                        saving -> "Saving..."
+                        kind == EventKind.MATCH -> "Create Match"
+                        else -> "Create Training"
+                    },
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
         }
+    }
+
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState()
+
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val millis = datePickerState.selectedDateMillis
+                        if (millis != null) {
+                            val date = Instant
+                                .ofEpochMilli(millis)
+                                .atZone(java.time.ZoneOffset.UTC)
+                                .toLocalDate()
+
+                            val formatted = date.format(
+                                DateTimeFormatter.ofPattern("dd MMM yyyy")
+                            )
+
+                            if (kind == EventKind.MATCH) {
+                                matchForm = matchForm.copy(date = formatted, dateError = null)
+                            } else {
+                                trainingForm = trainingForm.copy(date = formatted, dateError = null)
+                            }
+                        }
+                        showDatePicker = false
+                    }
+                ) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancel")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
+    if (showTimePicker) {
+        val timePickerState = rememberTimePickerState(
+            initialHour = 18,
+            initialMinute = 0,
+            is24Hour = false
+        )
+
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showTimePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val selectedTime = String.format(
+                            "%02d:%02d",
+                            timePickerState.hour,
+                            timePickerState.minute
+                        )
+
+                        if (kind == EventKind.MATCH) {
+                            matchForm = matchForm.copy(time = selectedTime)
+                        } else {
+                            trainingForm = trainingForm.copy(time = selectedTime)
+                        }
+
+                        showTimePicker = false
+                    }
+                ) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTimePicker = false }) {
+                    Text("Cancel")
+                }
+            },
+            text = {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    TimeInput(state = timePickerState)
+                }
+            }
+        )
     }
 }
 
 @Composable
-private fun EventTypeToggle(selected: EventKind, onSelect: (EventKind) -> Unit) {
+private fun EventTypeToggle(
+    selected: EventKind,
+    onSelect: (EventKind) -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -282,19 +528,26 @@ private fun EventTypeToggle(selected: EventKind, onSelect: (EventKind) -> Unit) 
             .background(FormUpColors.NavIndicator, RoundedCornerShape(10.dp))
             .padding(3.dp)
     ) {
-        listOf(EventKind.TRAINING to "Training", EventKind.LINEUP to "Match").forEach { (value, label) ->
+        listOf(
+            EventKind.TRAINING to "Training",
+            EventKind.MATCH to "Match"
+        ).forEach { (value, label) ->
             val isSelected = value == selected
+
             Surface(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
                     .clickable { onSelect(value) },
                 shape = RoundedCornerShape(8.dp),
-                color = if (isSelected) FormUpColors.Surface else androidx.compose.ui.graphics.Color.Transparent
+                color = if (isSelected) FormUpColors.Surface else Color.Transparent
             ) {
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(vertical = 9.dp)) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.padding(vertical = 9.dp)
+                ) {
                     Text(
-                        label,
+                        text = label,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 14.sp,
                         color = if (isSelected) FormUpColors.Primary else FormUpColors.TextSecondary
@@ -306,12 +559,55 @@ private fun EventTypeToggle(selected: EventKind, onSelect: (EventKind) -> Unit) 
 }
 
 @Composable
-private fun FieldLabel(text: String) {
-    Text(text, fontSize = 11.sp, color = FormUpColors.TextSecondary, modifier = Modifier.padding(bottom = 6.dp))
+private fun DateTimeField(
+    value: String,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+    ) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = {},
+            readOnly = true,
+            enabled = false,
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(10.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                disabledContainerColor = FormUpColors.Surface,
+                disabledBorderColor = FormUpColors.Hairline,
+                disabledTextColor = FormUpColors.TextPrimary,
+                disabledPlaceholderColor = FormUpColors.TextSecondary
+            )
+        )
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .clickable { onClick() }
+        )
+    }
 }
 
 @Composable
-private fun FormField(value: String, onValueChange: (String) -> Unit, placeholder: String, error: String? = null) {
+private fun FieldLabel(text: String) {
+    Text(
+        text = text,
+        fontSize = 11.sp,
+        color = FormUpColors.TextSecondary,
+        modifier = Modifier.padding(bottom = 6.dp)
+    )
+}
+
+@Composable
+private fun FormField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    error: String? = null
+) {
     Column {
         OutlinedTextField(
             value = value,
@@ -329,13 +625,50 @@ private fun FormField(value: String, onValueChange: (String) -> Unit, placeholde
             ),
             modifier = Modifier.fillMaxWidth()
         )
+
         error?.let {
-            Text(it, fontSize = 10.sp, color = FormUpColors.Danger, modifier = Modifier.padding(top = 4.dp, start = 2.dp))
+            Text(
+                text = it,
+                fontSize = 10.sp,
+                color = FormUpColors.Danger,
+                modifier = Modifier.padding(top = 4.dp, start = 2.dp)
+            )
         }
     }
 }
-@Preview(showBackground = true, widthDp = 360, heightDp = 1100)
+
+@RequiresApi(Build.VERSION_CODES.O)
+private fun createIsoDateTime(
+    dateText: String,
+    timeText: String
+): String? {
+    return try {
+        val date = LocalDate.parse(
+            dateText,
+            DateTimeFormatter.ofPattern("dd MMM yyyy")
+        )
+
+        val time = LocalTime.parse(
+            timeText,
+            DateTimeFormatter.ofPattern("HH:mm")
+        )
+
+        val dateTime = date.atTime(time)
+
+        dateTime
+            .atZone(ZoneId.systemDefault())
+            .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+
+    } catch (_: DateTimeParseException) {
+        null
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Preview(showBackground = true, widthDp = 360, heightDp = 900)
 @Composable
 private fun ManageEventScreenPreview() {
-    FormUpTheme { ManageEventScreen() }
+    FormUpTheme {
+        ManageEventScreen()
+    }
 }

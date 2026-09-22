@@ -2,34 +2,49 @@ package com.formup.app.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.EventAvailable
+import androidx.compose.material.icons.filled.Handshake
 import androidx.compose.material.icons.filled.MonitorHeart
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.QueryStats
+import androidx.compose.material.icons.filled.SportsScore
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.formup.app.data.ActivityEntry
+import com.formup.app.data.ApiException
 import com.formup.app.data.AppNotification
+import com.formup.app.data.AttendanceRecord
 import com.formup.app.data.AvailabilityStatus
 import com.formup.app.data.CoachProfile
 import com.formup.app.data.Fixture
+import com.formup.app.data.FormUpApi
 import com.formup.app.data.MatchEvent
 import com.formup.app.data.MatchEventType
 import com.formup.app.data.MatchLine
 import com.formup.app.data.NotificationKind
 import com.formup.app.data.Player
-import com.formup.app.data.FormUpApi
-import com.formup.app.data.ApiException
 import com.formup.app.data.SquadUpdate
 import com.formup.app.data.StatUpdate
-import com.google.firebase.auth.FirebaseAuth
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.launch
 import com.formup.app.data.TeamProfile
 import com.formup.app.data.TeamUpdateItem
 import com.formup.app.data.UpdateKind
+import com.formup.app.ui.calendar.AttendanceUiState
+import com.formup.app.ui.calendar.CalendarDay
+import com.formup.app.ui.calendar.CalendarEvent
+import com.formup.app.ui.calendar.CalendarUiState
+import com.formup.app.ui.calendar.DayMarker
+import com.formup.app.ui.calendar.LineupPlayer
+import com.formup.app.ui.calendar.MatchDetailsUiState
+import com.formup.app.ui.calendar.RosterEntry
+import com.formup.app.ui.calendar.RosterRowAction
+import com.formup.app.ui.calendar.RosterStatus
+import com.formup.app.ui.calendar.SubPlayer
 import com.formup.app.ui.home.Availability
 import com.formup.app.ui.home.HomeUiState
 import com.formup.app.ui.home.LastMatch
@@ -51,6 +66,7 @@ import com.formup.app.ui.profile.SeasonStat
 import com.formup.app.ui.profile.SupportedLanguages
 import com.formup.app.ui.profile.TeamInfo
 import com.formup.app.ui.stats.DualStat
+import com.formup.app.ui.stats.FixtureOption
 import com.formup.app.ui.stats.LastMatchAnalysis
 import com.formup.app.ui.stats.MatchReportUiState
 import com.formup.app.ui.stats.MatchStatRow
@@ -65,32 +81,16 @@ import com.formup.app.ui.stats.TeamScoreInfo
 import com.formup.app.ui.stats.TimelineEvent
 import com.formup.app.ui.stats.TimelineEventType
 import com.formup.app.ui.stats.TopPerformer
-import com.formup.app.ui.theme.FormUpColors
-import androidx.compose.material.icons.filled.EventAvailable
-import androidx.compose.material.icons.filled.Handshake
-import androidx.compose.material.icons.filled.SportsScore
-import androidx.compose.material.icons.filled.Timer
-import kotlin.math.roundToInt
-import com.formup.app.ui.calendar.AttendanceUiState
-import com.formup.app.ui.calendar.CalendarDay
-import com.formup.app.ui.calendar.CalendarEvent
-import com.formup.app.ui.calendar.CalendarUiState
-import com.formup.app.ui.calendar.DayMarker
-import com.formup.app.ui.calendar.LineupPlayer
-import com.formup.app.ui.calendar.MatchDetailsUiState
-import com.formup.app.ui.calendar.RosterEntry
-import com.formup.app.ui.calendar.RosterRowAction
-import com.formup.app.ui.calendar.RosterStatus
-import com.formup.app.ui.calendar.SubPlayer
 import com.formup.app.ui.team.PlayerStatus
 import com.formup.app.ui.team.SquadPlayer
 import com.formup.app.ui.team.TeamUiState
+import com.formup.app.ui.theme.FormUpColors
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
-import com.formup.app.data.AttendanceRecord
-import androidx.compose.runtime.mutableStateMapOf
-import com.formup.app.ui.stats.FixtureOption
+import kotlin.math.roundToInt
 
 class FormUpViewModel : ViewModel() {
 
@@ -103,6 +103,7 @@ class FormUpViewModel : ViewModel() {
     private val updateList = mutableStateListOf<TeamUpdateItem>()
     private val activityList = mutableStateListOf<ActivityEntry>()
     private val attendanceCache = mutableStateMapOf<String, Map<String, String>>()
+    private val matchSquadSelections = mutableStateMapOf<String, MutableMap<String, String>>()
 
     var coach by mutableStateOf(CoachProfile("", "Coach", emptyList(), "en", false, false))
         private set
@@ -170,7 +171,6 @@ class FormUpViewModel : ViewModel() {
         if (backStack.last() != destination) backStack.add(destination)
     }
 
-
     fun back(): Boolean {
         if (backStack.size <= 1) return false
         backStack.removeAt(backStack.lastIndex)
@@ -219,7 +219,6 @@ class FormUpViewModel : ViewModel() {
 
     val lineupCount: Int get() = playerList.count { it.inLineup }
 
-
     private var calendarOffset by mutableStateOf(0)
 
     fun previousCalendarMonth() { calendarOffset-- }
@@ -250,14 +249,9 @@ class FormUpViewModel : ViewModel() {
             shown.set(Calendar.DAY_OF_MONTH, 1)
             val leading = shown.get(Calendar.DAY_OF_WEEK) - Calendar.SUNDAY
             val count = shown.getActualMaximum(Calendar.DAY_OF_MONTH)
-            val days = buildList {
-                repeat(leading) { add(CalendarDay(0, "", false, null)) }
-                for (day in 1..count) {
-                    val hasMatch = fixtureList.any { fixtureDateParts(it.dateLabel)?.let { p -> p.first == day && p.second == month } == true }
-                    add(CalendarDay(day, "", true, if (hasMatch) DayMarker.MATCH else null))
-                }
-            }
-            val events = fixtureList.map { fixture ->
+
+            // 1. Convert match fixtures into CalendarEvent.Match
+            val matchEvents = fixtureList.map { fixture ->
                 CalendarEvent.Match(
                     id = fixture.id,
                     opponent = fixture.opponent,
@@ -267,11 +261,53 @@ class FormUpViewModel : ViewModel() {
                     formation = if (playerList.count { it.inLineup } == 11) "Starting XI selected" else null
                 )
             }
+
+            // 2. Generate or fetch Training Sessions (CalendarEvent.Training)
+            // If retrieving from backend API, map your session DTOs here.
+            val trainingEvents = listOf(
+                CalendarEvent.Training(
+                    id = "training-1",
+                    title = "Tactical & Set Piece Drill",
+                    timeRange = "18:00 - 19:30",
+                    location = team.homeGround.ifBlank { "Main Pitch" }
+                ),
+                CalendarEvent.Training(
+                    id = "training-2",
+                    title = "Recovery & Conditioning",
+                    timeRange = "09:00 - 10:30",
+                    location = team.homeGround.ifBlank { "Training Ground" }
+                )
+            )
+
+            // 3. Combine both Match and Training events
+            val allEvents: List<CalendarEvent> = matchEvents + trainingEvents
+
+            // 4. Build month grid days with correct DayMarker indicators
+            val days = buildList {
+                repeat(leading) { add(CalendarDay(0, "", false, null)) }
+                for (day in 1..count) {
+                    val hasMatch = fixtureList.any { fixtureDateParts(it.dateLabel)?.let { p -> p.first == day && p.second == month } == true }
+                    // Example marker logic: set DayMarker.TRAINING for mid-week training days (e.g. Tuesdays/Thursdays)
+                    val dayOfWeek = Calendar.getInstance().apply {
+                        set(year, month, day)
+                    }.get(Calendar.DAY_OF_WEEK)
+                    val hasTraining = dayOfWeek == Calendar.TUESDAY || dayOfWeek == Calendar.THURSDAY
+
+                    val marker = when {
+                        hasMatch -> DayMarker.MATCH
+                        hasTraining -> DayMarker.TRAINING
+                        else -> null
+                    }
+
+                    add(CalendarDay(day, "", true, marker))
+                }
+            }
+
             return CalendarUiState(
                 monthLabel = monthLabel,
                 days = days,
                 selectedDate = if (calendarOffset == 0) Calendar.getInstance().get(Calendar.DAY_OF_MONTH) else 1,
-                events = events
+                events = allEvents
             )
         }
 
@@ -407,6 +443,150 @@ class FormUpViewModel : ViewModel() {
             },
             substitutes = subs.mapIndexed { index, player -> SubPlayer(if (player.number > 0) player.number else index + 12, player.name, player.position) }
         )
+    }
+
+    // ---------------------------------------------------- squad / lineup updates
+
+    fun loadMatchSquad(matchId: String) {
+        viewModelScope.launch {
+            runCatching {
+                api.getSquad(matchId)
+            }.onSuccess { squad ->
+
+                val selections = squad.associate {
+                    it.playerId to it.selection
+                }.toMutableMap()
+
+                matchSquadSelections[matchId] = selections
+
+            }.onFailure {
+                notify(it.message ?: "Could not load lineup")
+            }
+        }
+    }
+
+    fun lineupSelection(
+        matchId: String,
+        playerId: String
+    ): String {
+        return matchSquadSelections[matchId]
+            ?.get(playerId)
+            ?: "NotSelected"
+    }
+
+    fun startingCount(matchId: String): Int {
+        return matchSquadSelections[matchId]
+            ?.count { it.value == "Starting" }
+            ?: 0
+    }
+
+    fun substituteCount(matchId: String): Int {
+        return matchSquadSelections[matchId]
+            ?.count { it.value == "Substitute" }
+            ?: 0
+    }
+
+    fun toggleLineupSelection(
+        matchId: String,
+        playerId: String
+    ) {
+        val current =
+            lineupSelection(matchId, playerId)
+
+        val startingCount =
+            startingCount(matchId)
+
+        val next = when (current) {
+            "NotSelected" -> {
+                if (startingCount >= 11) {
+                    notify("Starting XI is full")
+                    return
+                }
+
+                "Starting"
+            }
+
+            "Starting" -> "Substitute"
+
+            "Substitute" -> "NotSelected"
+
+            else -> "NotSelected"
+        }
+
+        val selections =
+            matchSquadSelections
+                .getOrPut(matchId) { mutableMapOf() }
+
+        selections[playerId] = next
+
+        matchSquadSelections[matchId] =
+            selections.toMutableMap()
+    }
+
+    fun clearMatchLineup(matchId: String) {
+        matchSquadSelections[matchId] =
+            mutableMapOf()
+
+        notify("Lineup cleared")
+    }
+
+    fun saveMatchLineup(matchId: String) {
+        val selections =
+            matchSquadSelections[matchId]
+                ?: mutableMapOf()
+
+        val starting =
+            selections.count { it.value == "Starting" }
+
+        if (starting != 11) {
+            notify("Select exactly 11 starting players")
+            return
+        }
+
+        viewModelScope.launch {
+            runCatching {
+
+                val squad =
+                    playerList.map { player ->
+
+                        SquadUpdate(
+                            playerId = player.id,
+
+                            status = when (player.status) {
+                                AvailabilityStatus.Fit ->
+                                    "Available"
+
+                                AvailabilityStatus.Doubtful ->
+                                    "Available"
+
+                                AvailabilityStatus.Out ->
+                                    "Available"
+                            },
+
+                            selection =
+                                selections[player.id]
+                                    ?: "NotSelected"
+                        )
+                    }
+
+                api.saveSquad(
+                    matchId = matchId,
+                    players = squad
+                )
+
+            }.onSuccess {
+
+                notify("Lineup saved")
+
+                back()
+
+            }.onFailure {
+                notify(
+                    it.message
+                        ?: "Could not save lineup"
+                )
+            }
+        }
     }
 
     // -------------------------------------------------------------- actions
@@ -889,8 +1069,8 @@ class FormUpViewModel : ViewModel() {
                     position = player.position,
                     goals = line?.goals ?: 0,
                     assists = line?.assists ?: 0,
-                    minutesPlayed = line?.minutes ?: 0,   // NEW
-                    rating = line?.rating ?: 0.0,         // NEW
+                    minutesPlayed = line?.minutes ?: 0,
+                    rating = line?.rating ?: 0.0,
                     badgeColor = if (player.inLineup) FormUpColors.Primary else FormUpColors.NavIndicator,
                     badgeTextColor = if (player.inLineup) FormUpColors.Surface else FormUpColors.TextPrimary
                 )

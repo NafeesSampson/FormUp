@@ -1,12 +1,14 @@
 package com.formup.app
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -67,6 +69,7 @@ import com.formup.app.ui.auth.emailSignUp
 import com.formup.app.ui.auth.googleSignIn
 import com.formup.app.ui.calendar.AttendanceScreen
 import com.formup.app.ui.calendar.CalendarScreen
+import com.formup.app.ui.calendar.ManageEventScreen
 import com.formup.app.ui.calendar.MatchDetailsScreen
 import com.formup.app.ui.home.HomeScreen
 import com.formup.app.ui.home.components.FormUpBottomBar
@@ -88,9 +91,9 @@ import com.formup.app.ui.theme.FormUpTheme
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
-import com.formup.app.ui.calendar.ManageEventScreen
 
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -106,6 +109,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun FormUpApp(viewModel: FormUpViewModel = viewModel()) {
     val context = LocalContext.current
@@ -322,7 +326,7 @@ private fun FormUpApp(viewModel: FormUpViewModel = viewModel()) {
                 onBack = { viewModel.back() },
                 onCustomizeColumns = { viewModel.notify("Column customization coming soon") },
                 onCancel = { viewModel.back() },
-                onSelectFixture = { newId -> viewModel.navigate(Destination.StatsInput(newId)) },  // NEW
+                onSelectFixture = { newId -> viewModel.navigate(Destination.StatsInput(newId)) },
                 onSave = { playerRows, homeScore, awayScore ->
                     viewModel.saveMatchStats(screen.fixtureId, playerRows, homeScore, awayScore)
                 },
@@ -342,8 +346,9 @@ private fun FormUpApp(viewModel: FormUpViewModel = viewModel()) {
             state = viewModel.calendarState,
             onPreviousMonth = viewModel::previousCalendarMonth,
             onNextMonth = viewModel::nextCalendarMonth,
-            onManageTrainingOrLineup = { viewModel.navigate(Destination.ManageEvent) },   // was routing to Lineup
-            onViewMatchDetails = { event -> viewModel.navigate(Destination.MatchDetails(event.id)) },
+            onManageTrainingOrLineup = { viewModel.navigate(Destination.ManageEvent) },
+            onViewMatchDetails = { matchId -> viewModel.navigate(Destination.MatchDetails(matchId)) },
+            onEditLineup = { matchId -> viewModel.navigate(Destination.Lineup(matchId)) },
             onViewTeamAttendance = { event -> viewModel.navigate(Destination.Attendance(event.id)) },
             onNotifications = openNotifications,
             onSelectTab = selectTab
@@ -352,7 +357,7 @@ private fun FormUpApp(viewModel: FormUpViewModel = viewModel()) {
         Destination.ManageEvent -> ManageEventScreen(
             onBack = { viewModel.back() },
             onEventCreated = {
-                viewModel.refreshFromApi()   // pulls the new match back in; sessions won't show yet, see note below
+                viewModel.refreshFromApi()
                 viewModel.back()
             }
         )

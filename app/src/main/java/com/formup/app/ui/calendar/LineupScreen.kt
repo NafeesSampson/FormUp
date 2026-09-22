@@ -35,7 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.formup.app.data.AvailabilityStatus
+import androidx.compose.ui.unit.sp
 import com.formup.app.data.Player
 import com.formup.app.ui.theme.FormUpColors
 
@@ -44,7 +44,10 @@ import com.formup.app.ui.theme.FormUpColors
 fun LineupScreen(
     opponent: String,
     players: List<Player>,
-    selectedCount: Int,
+    formation: String,
+    startingCount: Int,
+    substituteCount: Int,
+    selectionForPlayer: (String) -> String,
     onBack: () -> Unit,
     onTogglePlayer: (String) -> Unit,
     onClear: () -> Unit,
@@ -82,6 +85,7 @@ fun LineupScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+
             item {
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
@@ -96,19 +100,42 @@ fun LineupScreen(
                         modifier = Modifier.padding(16.dp)
                     ) {
                         Text(
-                            text = "Starting XI",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = FormUpColors.TextPrimary
+                            text = "Formation",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = FormUpColors.TextSecondary
                         )
 
                         Spacer(Modifier.height(4.dp))
 
                         Text(
-                            text = "$selectedCount / 11 selected",
+                            text = formation,
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = FormUpColors.Primary
+                        )
+
+                        Spacer(Modifier.height(8.dp))
+
+                        Text(
+                            text = "$startingCount / 11 Starting • $substituteCount Substitute",
                             color = FormUpColors.TextSecondary
                         )
                     }
                 }
+            }
+
+            item {
+                Text(
+                    text = "Squad",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = FormUpColors.TextPrimary
+                )
+
+                Text(
+                    text = "Tap a player to cycle between Starting, Substitute and Not Selected.",
+                    fontSize = 13.sp,
+                    color = FormUpColors.TextSecondary
+                )
             }
 
             items(
@@ -116,22 +143,26 @@ fun LineupScreen(
                 key = { it.id }
             ) { player ->
 
-                val unavailable =
-                    player.status == AvailabilityStatus.Out
+                val selection =
+                    selectionForPlayer(player.id)
+
+                val isStarting =
+                    selection == "Starting"
+
+                val isSubstitute =
+                    selection == "Substitute"
 
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable(
-                            enabled = !unavailable
-                        ) {
+                        .clickable {
                             onTogglePlayer(player.id)
                         },
                     shape = RoundedCornerShape(12.dp),
                     color = FormUpColors.Surface,
                     border = BorderStroke(
                         1.dp,
-                        if (player.inLineup) {
+                        if (selection != "NotSelected") {
                             FormUpColors.Primary
                         } else {
                             FormUpColors.Hairline
@@ -152,27 +183,40 @@ fun LineupScreen(
                             )
 
                             Text(
-                                text = "${player.position} • ${player.status.label}",
-                                color = FormUpColors.TextSecondary
+                                text = player.position,
+                                color = FormUpColors.TextSecondary,
+                                fontSize = 12.sp
                             )
                         }
 
-                        Icon(
-                            imageVector =
-                                if (player.inLineup) {
-                                    Icons.Filled.CheckCircle
-                                } else {
-                                    Icons.Filled.RadioButtonUnchecked
-                                },
-                            contentDescription = null,
-                            tint =
-                                if (player.inLineup) {
-                                    FormUpColors.Primary
-                                } else {
-                                    FormUpColors.TextSecondary
-                                },
-                            modifier = Modifier.size(24.dp)
-                        )
+                        when {
+                            isStarting -> {
+                                Icon(
+                                    Icons.Filled.CheckCircle,
+                                    contentDescription = "Starting",
+                                    tint = FormUpColors.Primary,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+
+                            isSubstitute -> {
+                                Text(
+                                    text = "SUB",
+                                    fontWeight = FontWeight.Bold,
+                                    color = FormUpColors.Primary,
+                                    fontSize = 12.sp
+                                )
+                            }
+
+                            else -> {
+                                Icon(
+                                    Icons.Filled.RadioButtonUnchecked,
+                                    contentDescription = "Not selected",
+                                    tint = FormUpColors.TextSecondary,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -193,13 +237,18 @@ fun LineupScreen(
 
                     Button(
                         onClick = onSave,
-                        enabled = selectedCount > 0,
+                        enabled = startingCount == 11,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = FormUpColors.Primary
                         ),
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("Save Lineup")
+                        Text(
+                            if (startingCount == 11)
+                                "Save Lineup"
+                            else
+                                "Select ${11 - startingCount} More"
+                        )
                     }
                 }
             }
