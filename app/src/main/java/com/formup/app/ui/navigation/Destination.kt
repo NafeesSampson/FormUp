@@ -8,7 +8,7 @@ sealed interface Destination {
     object Team : Destination
     object Stats : Destination
     object Profile : Destination
-
+    object ManageEvent : Destination
     object Notifications : Destination
     object InvitePlayer : Destination
     object EditProfile : Destination

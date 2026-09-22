@@ -128,7 +128,7 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
     suspend fun saveAttendance(
         matchId: String,
         attendance: List<AttendanceRecord>
-    ) {
+    ) =withContext(Dispatchers.IO){
         val array = JSONArray()
 
         attendance.forEach { record ->
@@ -142,6 +142,53 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
         request(
             method = "PUT",
             path = "/api/match/$matchId/attendance",
+            body = array
+        )
+    }
+
+    suspend fun getSessionAttendance(
+        sessionId: String
+    ): List<AttendanceRecord> = withContext(Dispatchers.IO) {
+
+        val response = request(
+            method = "GET",
+            path = "/api/session/$sessionId/attendance"
+        )
+
+        val array = JSONArray(response)
+
+        buildList {
+            for (index in 0 until array.length()) {
+                val item = array.getJSONObject(index)
+
+                add(
+                    AttendanceRecord(
+                        playerId = item.optString("playerId"),
+                        status = item.optString("status", "NotRecorded")
+                    )
+                )
+            }
+        }
+    }
+
+    suspend fun saveSessionAttendance(
+        sessionId: String,
+        attendance: List<AttendanceRecord>
+    ) = withContext(Dispatchers.IO) {
+
+        val array = JSONArray()
+
+        attendance.forEach { record ->
+            array.put(
+                JSONObject()
+                    .put("playerId", record.playerId)
+                    .put("status", record.status)
+            )
+        }
+
+        request(
+            method = "PUT",
+            path = "/api/session/$sessionId/attendance",
             body = array
         )
     }
@@ -199,6 +246,33 @@ class FormUpApi(private val auth: FirebaseAuth = FirebaseAuth.getInstance()) {
             path = "/api/players/$id"
         )
     }
+
+    suspend fun createMatch(
+        opponent: String,
+        matchDateIso: String,
+        venue: String            // must be exactly "Home" or "Away"
+    ): String = withContext(Dispatchers.IO) {
+        val response = request(
+            method = "POST",
+            path = "/api/match",
+            body = JSONObject()
+                .put("opponent", opponent)
+                .put("matchDate", matchDateIso)
+                .put("venue", venue)
+        )
+        JSONObject(response).optString("id")
+    }
+
+    suspend fun createSession(
+        sessionDateIso: String,
+        notes: String?
+    ): String = withContext(Dispatchers.IO) {
+        val body = JSONObject().put("sessionDate", sessionDateIso)
+        body.put("notes", notes ?: JSONObject.NULL)
+        val response = request(method = "POST", path = "/api/session", body = body)
+        JSONObject(response).optString("id")
+    }
+
 
     private fun getObject(path: String): JSONObject {
         return JSONObject(
@@ -413,7 +487,8 @@ private fun JSONObject.toFixture(): Fixture {
                         MatchLine(
                             goals = stat.optInt("goals"),
                             assists = stat.optInt("assists"),
-                            minutes = stat.optInt("minutesPlayed")
+                            minutes = stat.optInt("minutesPlayed"),
+                            rating = stat.optDouble("rating", 0.0)
                         )
                     )
                 }

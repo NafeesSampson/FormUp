@@ -28,21 +28,27 @@ import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,19 +60,23 @@ import com.formup.app.ui.home.components.StatusPill
 import com.formup.app.ui.theme.FormUpColors
 import com.formup.app.ui.theme.FormUpTheme
 import com.formup.app.ui.theme.Mono
+import androidx.compose.material3.ExperimentalMaterial3Api
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StatsInputScreen(
     state: StatsInputUiState = SampleStatsInputState,
     onBack: () -> Unit = {},
     onCustomizeColumns: () -> Unit = {},
     onCancel: () -> Unit = {},
+    onSelectFixture: (String) -> Unit = {},
     onSave: (List<PlayerStatEntry>, Int, Int) -> Unit = { _, _, _ -> },
     onNotifications: () -> Unit = {},
     onSelectTab: (HomeTab) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    var pickerExpanded by remember { mutableStateOf(false) }
     val playerRows = remember(state.players) {
         mutableStateListOf<PlayerStatEntry>().apply {
             addAll(state.players)
@@ -143,6 +153,36 @@ fun StatsInputScreen(
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                item {
+                    ExposedDropdownMenuBox(
+                        expanded = pickerExpanded,
+                        onExpandedChange = { pickerExpanded = it }
+                    ) {
+                        OutlinedTextField(
+                            value = state.availableFixtures.firstOrNull { it.id == state.fixtureId }?.label
+                                ?: "Select match",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Match") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = pickerExpanded) },
+                            modifier = Modifier.menuAnchor().fillMaxWidth()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = pickerExpanded,
+                            onDismissRequest = { pickerExpanded = false }
+                        ) {
+                            state.availableFixtures.forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(option.label) },
+                                    onClick = {
+                                        pickerExpanded = false
+                                        onSelectFixture(option.id)
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
                 item {
                     Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -242,7 +282,7 @@ fun StatsInputScreen(
                                 fontFamily = Mono,
                                 fontSize = 11.sp,
                                 color = FormUpColors.TextSecondary,
-                                modifier = Modifier.width(96.dp),
+                                modifier = Modifier.width(64.dp),
                                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
                             )
                             Text(
@@ -250,21 +290,28 @@ fun StatsInputScreen(
                                 fontFamily = Mono,
                                 fontSize = 11.sp,
                                 color = FormUpColors.TextSecondary,
-                                modifier = Modifier.width(96.dp),
+                                modifier = Modifier.width(64.dp),
                                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
                             )
+                            Text("Min", fontFamily = Mono, fontSize = 11.sp, color = FormUpColors.TextSecondary,
+                                modifier = Modifier.width(56.dp), textAlign = TextAlign.Center)
+                            Text("Rating", fontFamily = Mono, fontSize = 11.sp, color = FormUpColors.TextSecondary,
+                                modifier = Modifier.width(56.dp), textAlign = TextAlign.Center)
                         }
 
                         playerRows.forEachIndexed { index, player ->
                             HorizontalDivider(color = FormUpColors.Hairline)
                             PlayerStatRow(
                                 player = player,
-                                onGoalsChange = { delta ->
-                                    updateGoals(index, delta)
-                                },
+                                onGoalsChange = { delta -> updateGoals(index, delta) },
                                 onAssistsChange = { delta ->
-                                    val updated = (player.assists + delta).coerceAtLeast(0)
-                                    playerRows[index] = player.copy(assists = updated)
+                                    playerRows[index] = player.copy(assists = (player.assists + delta).coerceAtLeast(0))
+                                },
+                                onMinutesChange = { delta ->
+                                    playerRows[index] = player.copy(minutesPlayed = (player.minutesPlayed + delta).coerceIn(0, 120))
+                                },
+                                onRatingChange = { delta ->
+                                    playerRows[index] = player.copy(rating = (player.rating + delta).coerceIn(0.0, 10.0))
                                 }
                             )
                         }
@@ -404,7 +451,9 @@ private fun ScoreField(
 private fun PlayerStatRow(
     player: PlayerStatEntry,
     onGoalsChange: (Int) -> Unit,
-    onAssistsChange: (Int) -> Unit
+    onAssistsChange: (Int) -> Unit,
+    onMinutesChange: (Int) -> Unit,
+    onRatingChange: (Double) -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -446,19 +495,22 @@ private fun PlayerStatRow(
             }
         }
 
-        Stepper(value = player.goals, onChange = onGoalsChange, modifier = Modifier.width(96.dp))
-        Stepper(value = player.assists, onChange = onAssistsChange, modifier = Modifier.width(96.dp))
+        Stepper(value = player.goals, onChange = onGoalsChange, modifier = Modifier.width(64.dp))
+        Stepper(value = player.assists, onChange = onAssistsChange, modifier = Modifier.width(64.dp))
+        Stepper(value = player.minutesPlayed, onChange = onMinutesChange, step = 5, modifier = Modifier.width(56.dp))
+        RatingStepper(value = player.rating, onChange = onRatingChange, modifier = Modifier.width(56.dp))
+
     }
 }
 
 @Composable
-private fun Stepper(value: Int, onChange: (Int) -> Unit, modifier: Modifier = Modifier) {
+private fun Stepper(value: Int, onChange: (Int) -> Unit, step: Int = 1, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        StepperButton(icon = Icons.Filled.Remove, onClick = { onChange(-1) })
+        StepperButton(icon = Icons.Filled.Remove, onClick = { onChange(-step) })
         Text(
             text = value.toString(),
             fontFamily = Mono,
@@ -468,7 +520,7 @@ private fun Stepper(value: Int, onChange: (Int) -> Unit, modifier: Modifier = Mo
             modifier = Modifier.width(22.dp),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
-        StepperButton(icon = Icons.Filled.Add, onClick = { onChange(1) })
+        StepperButton(icon = Icons.Filled.Add, onClick = { onChange(step) })
     }
 }
 
@@ -488,6 +540,18 @@ private fun StepperButton(icon: androidx.compose.ui.graphics.vector.ImageVector,
             tint = FormUpColors.TextSecondary,
             modifier = Modifier.size(14.dp)
         )
+    }
+}
+
+@Composable
+private fun RatingStepper(value: Double, onChange: (Double) -> Unit, modifier: Modifier = Modifier) {
+    Row(modifier = modifier, horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+        StepperButton(icon = Icons.Filled.Remove, onClick = { onChange(-0.5) })
+        Text(String.format(java.util.Locale.getDefault(), "%.1f", value),
+            fontFamily = Mono, fontWeight = FontWeight.Bold, fontSize = 12.sp,
+            color = FormUpColors.TextPrimary, modifier = Modifier.width(28.dp),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+        StepperButton(icon = Icons.Filled.Add, onClick = { onChange(0.5) })
     }
 }
 
